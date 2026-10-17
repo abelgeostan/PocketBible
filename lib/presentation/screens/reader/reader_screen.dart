@@ -9,6 +9,7 @@ import '../../../providers/reader_settings_provider.dart';
 import '../../../providers/theme_provider.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/toast_notification.dart';
+import '../home/home_screen.dart';
 import '../home/widgets/sticky_selector_bar.dart';
 import '../search/search_screen.dart';
 import 'widgets/chapter_navigation_bar.dart';
@@ -139,9 +140,11 @@ class _ReaderScreenState extends State<ReaderScreen> {
               ),
               title: InkWell(
                 onTap: () {
-                  if (Navigator.canPop(context)) {
-                    Navigator.popUntil(context, (route) => route.isFirst);
-                  }
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HomeScreen()),
+                    (route) => false,
+                  );
                 },
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(

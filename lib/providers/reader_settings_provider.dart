@@ -16,7 +16,7 @@ class ReaderSettingsProvider extends ChangeNotifier {
   bool get showVerseNumbers => _showVerseNumbers;
   double get lineSpacing => _lineSpacing;
 
-  EdgeInsets get readingPadding => const EdgeInsets.symmetric(horizontal: 16, vertical: 16);
+  EdgeInsets get readingPadding => const EdgeInsets.symmetric(horizontal: 12, vertical: 12);
 
   ReaderSettingsProvider() {
     _loadSettings();

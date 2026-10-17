@@ -94,84 +94,70 @@ class VerseItemWidget extends StatelessWidget {
           color: backgroundColor,
           borderRadius: BorderRadius.circular(6),
         ),
-        child: Row(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Verse Number (Superscript Column matching .bible-text .vnum)
-            if (settings.showVerseNumbers) ...[
-              SizedBox(
-                width: 28,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        '${verse.verse}',
-                        textAlign: TextAlign.right,
-                        style: TextStyle(
-                          fontFamily: 'Arial',
-                          fontSize: (settings.fontSize * 0.65).clamp(10.0, 16.0),
-                          fontWeight: FontWeight.w700,
-                          color: isBookmarked ? accentColor : (isDark ? AppColors.darkAccent2 : AppColors.lightAccent2),
+            RichText(
+              text: TextSpan(
+                children: [
+                  if (settings.showVerseNumbers)
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.top,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 6, top: 1),
+                        child: Text(
+                          '${verse.verse}',
+                          style: TextStyle(
+                            fontFamily: 'Arial',
+                            fontSize: (settings.fontSize * 0.72).clamp(11.0, 16.0),
+                            fontWeight: FontWeight.w700,
+                            color: isBookmarked ? accentColor : (isDark ? AppColors.darkAccent2 : AppColors.lightAccent2),
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-            ],
-
-            // Verse Text & Badges (Matching .verse-text)
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  RichText(
-                    text: TextSpan(
-                      text: verse.text,
-                      style: TextStyle(
-                        fontFamily: 'Noto Sans Malayalam',
-                        fontSize: settings.fontSize,
-                        height: settings.lineSpacing,
-                        color: textColor,
-                        fontWeight: FontWeight.w400,
-                      ),
+                    ),
+                  TextSpan(
+                    text: verse.text,
+                    style: TextStyle(
+                      fontFamily: 'Noto Sans Malayalam',
+                      fontSize: settings.fontSize,
+                      height: settings.lineSpacing,
+                      color: textColor,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
+                ],
+              ),
+            ),
 
-                  // Optional Indicators for Bookmark & Notes
-                  if (isBookmarked || noteText != null) ...[
-                    const SizedBox(height: 3),
-                    Row(
-                      children: [
-                        if (isBookmarked) ...[
-                          Icon(Icons.bookmark, size: 14, color: accentColor),
-                          const SizedBox(width: 4),
-                        ],
-                        if (noteText != null) ...[
-                          Icon(Icons.note_alt, size: 14, color: mutedColor),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              noteText,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontStyle: FontStyle.italic,
-                                color: mutedColor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
+            // Optional Indicators for Bookmark & Notes
+            if (isBookmarked || noteText != null) ...[
+              const SizedBox(height: 3),
+              Row(
+                children: [
+                  if (isBookmarked) ...[
+                    Icon(Icons.bookmark, size: 14, color: accentColor),
+                    const SizedBox(width: 4),
+                  ],
+                  if (noteText != null) ...[
+                    Icon(Icons.note_alt, size: 14, color: mutedColor),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        noteText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontStyle: FontStyle.italic,
+                          color: mutedColor,
+                        ),
+                      ),
                     ),
                   ],
                 ],
               ),
-            ),
+            ],
           ],
         ),
       ),

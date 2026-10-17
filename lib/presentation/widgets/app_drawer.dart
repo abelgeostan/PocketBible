@@ -15,6 +15,7 @@ import '../screens/notes/notes_screen.dart';
 import '../screens/search/search_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/about/about_screen.dart';
+import '../screens/home/home_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -133,23 +134,28 @@ class AppDrawer extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 8),
               children: [
                 // Reading Section
-                _buildSectionHeader('വായനയും പഠനവും', mutedColor),
+                _buildSectionHeader('Reading & Study', mutedColor),
                 _buildDrawerItem(
                   context,
                   icon: Icons.auto_stories_outlined,
-                  title: 'വേദപുസ്തകം',
-                  subtitle: 'എല്ലാ പുസ്തകങ്ങളും അധ്യായങ്ങളും',
+                  title: 'Holy Bible',
+                  subtitle: 'All Books & Chapters',
                   textColor: textColor,
                   mutedColor: mutedColor,
                   accentColor: accentColor,
                   onTap: () {
                     Navigator.pop(context);
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const HomeScreen()),
+                      (route) => false,
+                    );
                   },
                 ),
                 _buildDrawerItem(
                   context,
                   icon: Icons.search_outlined,
-                  title: 'വേദപുസ്തകത്തിൽ തിരയുക',
+                  title: 'Search Scripture',
                   subtitle: 'Malayalam Scripture Search',
                   textColor: textColor,
                   mutedColor: mutedColor,
@@ -166,11 +172,11 @@ class AppDrawer extends StatelessWidget {
                 const Divider(height: 16),
 
                 // Library Section
-                _buildSectionHeader('എന്റെ ശേഖരം', mutedColor),
+                _buildSectionHeader('My Library', mutedColor),
                 _buildDrawerItem(
                   context,
                   icon: Icons.bookmark_outline,
-                  title: 'ബുക്ക്മാർക്കുകൾ',
+                  title: 'Bookmarks',
                   badgeCount: bookmarksCount,
                   textColor: textColor,
                   mutedColor: mutedColor,
@@ -186,7 +192,7 @@ class AppDrawer extends StatelessWidget {
                 _buildDrawerItem(
                   context,
                   icon: Icons.format_color_fill_outlined,
-                  title: 'ഹൈലൈറ്റുകൾ',
+                  title: 'Highlights',
                   badgeCount: highlightsCount,
                   textColor: textColor,
                   mutedColor: mutedColor,
@@ -202,7 +208,7 @@ class AppDrawer extends StatelessWidget {
                 _buildDrawerItem(
                   context,
                   icon: Icons.note_alt_outlined,
-                  title: 'കുറിപ്പുകൾ',
+                  title: 'Notes',
                   badgeCount: notesCount,
                   textColor: textColor,
                   mutedColor: mutedColor,
@@ -218,7 +224,7 @@ class AppDrawer extends StatelessWidget {
                 _buildDrawerItem(
                   context,
                   icon: Icons.history_outlined,
-                  title: 'വായനാ ചരിത്രം',
+                  title: 'Reading History',
                   textColor: textColor,
                   mutedColor: mutedColor,
                   accentColor: accentColor,
@@ -234,12 +240,12 @@ class AppDrawer extends StatelessWidget {
                 const Divider(height: 16),
 
                 // App Settings & More
-                _buildSectionHeader('ക്രമീകരണങ്ങളും വിവരങ്ങളും', mutedColor),
+                _buildSectionHeader('Settings & More', mutedColor),
                 _buildDrawerItem(
                   context,
                   icon: Icons.settings_outlined,
-                  title: 'ക്രമീകരണങ്ങൾ',
-                  subtitle: 'തീം, ഫോണ്ട് വലിപ്പം, വായനാരീതി',
+                  title: 'Settings',
+                  subtitle: 'Theme, Font size, Display',
                   textColor: textColor,
                   mutedColor: mutedColor,
                   accentColor: accentColor,
@@ -254,8 +260,8 @@ class AppDrawer extends StatelessWidget {
                 _buildDrawerItem(
                   context,
                   icon: Icons.info_outline,
-                  title: 'PocketBible വിവരങ്ങൾ',
-                  subtitle: 'ലൈസൻസ്, ഉറവിടം',
+                  title: 'About PocketBible',
+                  subtitle: 'License, Sources & Credits',
                   textColor: textColor,
                   mutedColor: mutedColor,
                   accentColor: accentColor,
@@ -270,14 +276,14 @@ class AppDrawer extends StatelessWidget {
                 _buildDrawerItem(
                   context,
                   icon: Icons.share_outlined,
-                  title: 'ആപ്പ് പങ്കിടുക',
+                  title: 'Share App',
                   textColor: textColor,
                   mutedColor: mutedColor,
                   accentColor: accentColor,
                   onTap: () {
                     Navigator.pop(context);
                     Share.share(
-                      'PocketBible — മലയാളം സത്യവേദപുസ്തകം 1910 മൊബൈൽ ആപ്പ് ഡൗൺലോഡ് ചെയ്യുക:\n${AppConstants.playStoreUrl}',
+                      'PocketBible — Malayalam Holy Bible (മലയാളം സത്യവേദപുസ്തകം 1910):\n${AppConstants.playStoreUrl}',
                       subject: 'PocketBible Malayalam Holy Bible App',
                     );
                   },
@@ -285,7 +291,7 @@ class AppDrawer extends StatelessWidget {
                 _buildDrawerItem(
                   context,
                   icon: Icons.star_rate_outlined,
-                  title: 'Play Store-ൽ റേറ്റ് ചെയ്യുക',
+                  title: 'Rate on Play Store',
                   textColor: textColor,
                   mutedColor: mutedColor,
                   accentColor: accentColor,
