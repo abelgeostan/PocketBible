@@ -176,21 +176,39 @@ class AboutScreen extends StatelessWidget {
                     'Powered by Sansnet (https://sansnet.com)\nPocketBible.in project.',
                     style: TextStyle(fontSize: 13, height: 1.6, color: textColor),
                   ),
-                  const SizedBox(height: 12),
-                  InkWell(
-                    onTap: () async {
+                  const SizedBox(height: 14),
+                  OutlinedButton.icon(
+                    onPressed: () async {
                       final url = Uri.parse(AppConstants.websiteUrl);
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url, mode: LaunchMode.externalApplication);
+                      try {
+                        final launched = await launchUrl(
+                          url,
+                          mode: LaunchMode.externalApplication,
+                        );
+                        if (!launched) {
+                          await launchUrl(url, mode: LaunchMode.platformDefault);
+                        }
+                      } catch (_) {
+                        try {
+                          await launchUrl(url, mode: LaunchMode.platformDefault);
+                        } catch (_) {}
                       }
                     },
-                    child: Text(
-                      'Visit PocketBible.in website →',
+                    icon: Icon(Icons.open_in_browser, size: 18, color: accentColor),
+                    label: Text(
+                      'Visit PocketBible.in website',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: accentColor,
                       ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: accentColor.withValues(alpha: 0.4)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     ),
                   ),
                 ],
