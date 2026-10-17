@@ -43,6 +43,10 @@ class BibleRepository {
     return await _db.getChapterVerses(bookCode, chapter);
   }
 
+  Future<int> getVerseCount(String bookCode, int chapter) async {
+    return await _db.getVerseCount(bookCode, chapter);
+  }
+
   Future<List<BibleVerse>> searchVerses(
     String query, {
     String? testament,

@@ -200,6 +200,18 @@ class BibleDatabase {
     return result.map((m) => BibleVerse.fromMap(m, bookName: bookName)).toList();
   }
 
+  Future<int> getVerseCount(String bookCode, int chapter) async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM verses WHERE book_code = ? AND chapter = ?',
+      [bookCode, chapter],
+    );
+    if (result.isNotEmpty) {
+      return (result.first['count'] as int?) ?? 0;
+    }
+    return 0;
+  }
+
   // --- Fast Search ---
 
   Future<List<BibleVerse>> searchVerses(

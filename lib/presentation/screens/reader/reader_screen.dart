@@ -115,6 +115,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final currentKey = '${nav.currentBook?.code}-${nav.currentChapter}';
     if (currentKey != _loadedKey && !_isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _loadVerses());
+    } else if (nav.targetVerse != null && !_isLoading && _verses.isNotEmpty) {
+      final v = nav.targetVerse!;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToVerse(v);
+        nav.clearTargetVerse();
+      });
     }
 
     final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
@@ -126,7 +132,17 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final book = nav.currentBook;
     final chapter = nav.currentChapter;
 
-    return Scaffold(
+    return PopScope(
+      canPop: Navigator.canPop(context),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomeScreen(autoOpenLastRead: false)),
+          );
+        }
+      },
+      child: Scaffold(
       drawer: const AppDrawer(),
       appBar: AppBar(
               titleSpacing: 0,
@@ -142,7 +158,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                 onTap: () {
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (_) => const HomeScreen()),
+                    MaterialPageRoute(builder: (_) => const HomeScreen(autoOpenLastRead: false)),
                     (route) => false,
                   );
                 },
@@ -321,6 +337,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

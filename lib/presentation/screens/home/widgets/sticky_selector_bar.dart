@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_constants.dart';
 import '../../../../providers/bible_navigation_provider.dart';
 import '../../../widgets/book_picker_modal.dart';
 import '../../../widgets/chapter_picker_modal.dart';
+import '../../../widgets/verse_picker_modal.dart';
 import '../../reader/reader_screen.dart';
 
 class StickySelectorBar extends StatelessWidget {
@@ -26,14 +26,9 @@ class StickySelectorBar extends StatelessWidget {
     final textColor = isDark ? AppColors.darkText : AppColors.lightText;
     final mutedColor = isDark ? AppColors.darkMuted : AppColors.lightMuted;
 
-    final testamentLabel = nav.selectedTestament == 'OT'
-        ? AppConstants.oldTestamentLabel
-        : nav.selectedTestament == 'NT'
-            ? AppConstants.newTestamentLabel
-            : 'Testament';
-
     final bookLabel = nav.currentBook?.name ?? 'Select book';
-    final chapterLabel = 'Chapter ${nav.currentChapter}';
+    final chapterLabel = '${nav.currentChapter}';
+    final verseLabel = '${nav.targetVerse ?? 1}';
 
     return Container(
       padding: const EdgeInsets.all(10),
@@ -51,23 +46,7 @@ class StickySelectorBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Testament Selector
-          Expanded(
-            flex: 4,
-            child: _buildSelectorButton(
-              context,
-              label: 'Testament',
-              value: testamentLabel,
-              onTap: () => _showTestamentPicker(context, nav),
-              surface2Color: surface2Color,
-              lineColor: lineColor,
-              textColor: textColor,
-              mutedColor: mutedColor,
-            ),
-          ),
-          const SizedBox(width: 8),
-
-          // Book Selector
+          // 1. Book Selector
           Expanded(
             flex: 5,
             child: _buildSelectorButton(
@@ -83,14 +62,30 @@ class StickySelectorBar extends StatelessWidget {
           ),
           const SizedBox(width: 8),
 
-          // Chapter Selector
+          // 2. Chapter Selector
           Expanded(
-            flex: 4,
+            flex: 3,
             child: _buildSelectorButton(
               context,
               label: 'Chapter',
               value: chapterLabel,
               onTap: () => _openChapterPicker(context, nav),
+              surface2Color: surface2Color,
+              lineColor: lineColor,
+              textColor: textColor,
+              mutedColor: mutedColor,
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // 3. Verse Selector
+          Expanded(
+            flex: 3,
+            child: _buildSelectorButton(
+              context,
+              label: 'Verse',
+              value: verseLabel,
+              onTap: () => _openVersePicker(context, nav),
               surface2Color: surface2Color,
               lineColor: lineColor,
               textColor: textColor,
@@ -133,7 +128,7 @@ class StickySelectorBar extends StatelessWidget {
           borderRadius: BorderRadius.circular(9),
           child: Container(
             height: 44,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             decoration: BoxDecoration(
               color: surface2Color,
               borderRadius: BorderRadius.circular(9),
@@ -148,7 +143,7 @@ class StickySelectorBar extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: textColor,
                     ),
@@ -163,75 +158,16 @@ class StickySelectorBar extends StatelessWidget {
     );
   }
 
-  Future<void> _showTestamentPicker(BuildContext context, BibleNavigationProvider nav) async {
-    final chosen = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-        final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
-        final accentColor = isDark ? AppColors.darkAccent : AppColors.lightAccent;
-
-        return Container(
-          decoration: BoxDecoration(
-            color: surfaceColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'നിയമം തിരഞ്ഞെടുക്കുക',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? AppColors.darkText : AppColors.lightText,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                title: const Text('പഴയ നിയമം (Old Testament)'),
-                trailing: nav.selectedTestament == 'OT'
-                    ? Icon(Icons.check, color: accentColor)
-                    : null,
-                onTap: () => Navigator.pop(ctx, 'OT'),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                title: const Text('പുതിയ നിയമം (New Testament)'),
-                trailing: nav.selectedTestament == 'NT'
-                    ? Icon(Icons.check, color: accentColor)
-                    : null,
-                onTap: () => Navigator.pop(ctx, 'NT'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-
-    if (chosen != null && context.mounted) {
-      nav.selectTestament(chosen);
-      // Automatically open book selection with the chosen testament
-      await _openBookAndChapterFlow(context, nav, initialTestament: chosen);
-    }
-  }
-
   Future<void> _openBookAndChapterFlow(
     BuildContext context,
-    BibleNavigationProvider nav, {
-    String? initialTestament,
-  }) async {
-    final selectedBook = await BookPickerModal.show(
-      context,
-      initialTestament: initialTestament ?? nav.selectedTestament,
-    );
+    BibleNavigationProvider nav,
+  ) async {
+    final selectedBook = await BookPickerModal.show(context);
 
     if (selectedBook != null && context.mounted) {
       nav.selectBook(selectedBook.code);
 
-      // Automatically go to chapter selection
+      // Automatically open chapter picker after book is selected
       final initialChapter = (nav.currentBook?.code == selectedBook.code) ? nav.currentChapter : 1;
       final selectedChapter = await ChapterPickerModal.show(
         context,
@@ -240,7 +176,8 @@ class StickySelectorBar extends StatelessWidget {
       );
 
       if (selectedChapter != null && context.mounted) {
-        nav.selectChapter(selectedChapter);
+        // Go straight to verse 1 without forcing verse selection
+        nav.selectChapter(selectedChapter, verse: 1);
         if (navigateOnChapterSelect) {
           Navigator.push(
             context,
@@ -262,7 +199,30 @@ class StickySelectorBar extends StatelessWidget {
       nav.currentChapter,
     );
     if (ch != null && context.mounted) {
-      nav.selectChapter(ch);
+      // Go straight to verse 1
+      nav.selectChapter(ch, verse: 1);
+      if (navigateOnChapterSelect) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ReaderScreen()),
+        );
+      }
+    }
+  }
+
+  Future<void> _openVersePicker(
+    BuildContext context,
+    BibleNavigationProvider nav,
+  ) async {
+    if (nav.currentBook == null) return;
+    final selectedVerse = await VersePickerModal.show(
+      context,
+      book: nav.currentBook!,
+      chapter: nav.currentChapter,
+      currentVerse: nav.targetVerse ?? 1,
+    );
+    if (selectedVerse != null && context.mounted) {
+      nav.selectVerse(selectedVerse);
       if (navigateOnChapterSelect) {
         Navigator.push(
           context,

@@ -129,6 +129,12 @@ class BibleNavigationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void selectVerse(int verse) {
+    _targetVerse = verse;
+    _saveCurrentPosition();
+    notifyListeners();
+  }
+
   void navigateTo(String bookCode, int chapter, {int? verse}) {
     try {
       final book = _books.firstWhere((b) => b.code == bookCode);
