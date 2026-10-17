@@ -28,21 +28,26 @@ class BookmarksScreen extends StatelessWidget {
           ? const Center(child: CircularProgressIndicator())
           : bookmarks.bookmarks.isEmpty
               ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.bookmark_border, size: 54, color: mutedColor.withOpacity(0.5)),
-                      const SizedBox(height: 12),
-                      Text(
-                        'No bookmarks yet.',
-                        style: TextStyle(fontSize: 16, color: mutedColor),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'വായനയിൽ വചനത്തിന്മേൽ ടാപ്പ് ചെയ്ത് ബുക്ക്മാർക്ക് ചെയ്യാം.',
-                        style: TextStyle(fontSize: 13, color: mutedColor),
-                      ),
-                    ],
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.bookmark_border, size: 54, color: mutedColor.withValues(alpha: 0.5)),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No bookmarks yet.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 16, color: mutedColor),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'വായനയിൽ വചനത്തിന്മേൽ ടാപ്പ് ചെയ്ത് ബുക്ക്മാർക്ക് ചെയ്യാം.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 13, color: mutedColor),
+                        ),
+                      ],
+                    ),
                   ),
                 )
               : ListView.separated(
