@@ -54,23 +54,28 @@ class BibleNavigationProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    _books = await _bibleRepository.getBooks();
-    _lastReadPosition = await _userDataRepository.getLastRead();
+    try {
+      _books = await _bibleRepository.getBooks();
+      _lastReadPosition = await _userDataRepository.getLastRead();
 
-    if (_lastReadPosition != null) {
-      try {
-        _currentBook = _books.firstWhere((b) => b.code == _lastReadPosition!.bookCode);
-        _currentChapter = _lastReadPosition!.chapter;
-        _selectedTestament = _currentBook?.testament;
-      } catch (_) {
+      if (_lastReadPosition != null) {
+        try {
+          _currentBook = _books.firstWhere((b) => b.code == _lastReadPosition!.bookCode);
+          _currentChapter = _lastReadPosition!.chapter;
+          _selectedTestament = _currentBook?.testament;
+        } catch (_) {
+          _setDefaultBook();
+        }
+      } else {
         _setDefaultBook();
       }
-    } else {
+    } catch (e) {
+      debugPrint('Error initializing BibleNavigationProvider: $e');
       _setDefaultBook();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
   }
 
   void _setDefaultBook() {
