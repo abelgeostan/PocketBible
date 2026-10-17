@@ -6,6 +6,7 @@ import '../../data/models/bible_verse.dart';
 import 'toast_notification.dart';
 
 class VerseActionsModal extends StatelessWidget {
+  final BuildContext parentContext;
   final BibleVerse verse;
   final bool isBookmarked;
   final String? currentHighlight;
@@ -18,6 +19,7 @@ class VerseActionsModal extends StatelessWidget {
 
   const VerseActionsModal({
     super.key,
+    required this.parentContext,
     required this.verse,
     required this.isBookmarked,
     this.currentHighlight,
@@ -46,6 +48,7 @@ class VerseActionsModal extends StatelessWidget {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (ctx) => VerseActionsModal(
+        parentContext: context,
         verse: verse,
         isBookmarked: isBookmarked,
         currentHighlight: currentHighlight,
@@ -267,7 +270,7 @@ class VerseActionsModal extends StatelessWidget {
                   isSelected: currentNote != null,
                   onTap: () {
                     Navigator.pop(context);
-                    _showNoteDialog(context);
+                    _showNoteDialog(parentContext);
                   },
                 ),
               ],
@@ -337,11 +340,11 @@ class VerseActionsModal extends StatelessWidget {
     );
   }
 
-  void _showNoteDialog(BuildContext context) {
+  void _showNoteDialog(BuildContext hostContext) {
     final controller = TextEditingController(text: currentNote ?? '');
     showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
+      context: hostContext,
+      builder: (dialogContext) => AlertDialog(
         title: Text(
           'കുറിപ്പ് എഴുതുക (${verse.bookName ?? verse.bookCode} ${verse.chapter}:${verse.verse})',
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
@@ -349,6 +352,7 @@ class VerseActionsModal extends StatelessWidget {
         content: TextField(
           controller: controller,
           maxLines: 5,
+          autofocus: true,
           decoration: const InputDecoration(
             hintText: 'നിങ്ങളുടെ കുറിപ്പുകൾ ഇവിടെ രേഖപ്പെടുത്തുക...',
           ),
@@ -358,24 +362,28 @@ class VerseActionsModal extends StatelessWidget {
             TextButton(
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               onPressed: () {
+                Navigator.pop(dialogContext);
                 onDeleteNote();
-                Navigator.pop(ctx);
-                ToastNotification.show(context, 'കുറിപ്പ് നീക്കം ചെയ്തു');
+                if (hostContext.mounted) {
+                  ToastNotification.show(hostContext, 'കുറിപ്പ് നീക്കം ചെയ്തു');
+                }
               },
               child: const Text('Delete'),
             ),
           TextButton(
-            onPressed: () => Navigator.pop(ctx),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () {
               final text = controller.text.trim();
+              Navigator.pop(dialogContext);
               if (text.isNotEmpty) {
                 onSaveNote(text);
-                ToastNotification.show(context, 'കുറിപ്പ് സൂക്ഷിച്ചു');
+                if (hostContext.mounted) {
+                  ToastNotification.show(hostContext, 'കുറിപ്പ് സൂക്ഷിച്ചു');
+                }
               }
-              Navigator.pop(ctx);
             },
             child: const Text('Save'),
           ),

@@ -72,7 +72,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
           _scrollToVerse(nav.targetVerse!);
           nav.clearTargetVerse();
         });
-      } else {
+      } else if (_scrollController.hasClients) {
         _scrollController.jumpTo(0);
       }
     }
