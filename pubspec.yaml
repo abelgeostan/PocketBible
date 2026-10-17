@@ -1,7 +1,7 @@
 name: pocketbible
 description: "PocketBible - Malayalam Holy Bible (സത്യവേദപുസ്തകം 1910). Fast, offline, responsive Bible reader with search, bookmarks, highlights and study tools."
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.2.1+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

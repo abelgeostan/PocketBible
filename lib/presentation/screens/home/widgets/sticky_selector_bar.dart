@@ -176,8 +176,8 @@ class StickySelectorBar extends StatelessWidget {
       );
 
       if (selectedChapter != null && context.mounted) {
-        // Go straight to verse 1 without forcing verse selection
-        nav.selectChapter(selectedChapter, verse: 1);
+        // Go straight to verse 1 without highlighting verse 1
+        nav.selectChapter(selectedChapter);
         if (navigateOnChapterSelect) {
           Navigator.push(
             context,
@@ -199,8 +199,8 @@ class StickySelectorBar extends StatelessWidget {
       nav.currentChapter,
     );
     if (ch != null && context.mounted) {
-      // Go straight to verse 1
-      nav.selectChapter(ch, verse: 1);
+      // Go straight to verse 1 without highlighting verse 1
+      nav.selectChapter(ch);
       if (navigateOnChapterSelect) {
         Navigator.push(
           context,

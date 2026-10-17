@@ -31,31 +31,99 @@ class BookPickerModal extends StatefulWidget {
 }
 
 class _BookPickerModalState extends State<BookPickerModal> with SingleTickerProviderStateMixin {
+  static const double _itemHeight = 52.0;
+  static const double _headerHeight = 36.0;
+
   late TabController _tabController;
+  final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   String _searchFilter = '';
+  bool _isProgrammaticScrolling = false;
+
+  int _currentOtCount = 39;
+  int _currentNtCount = 27;
 
   @override
   void initState() {
     super.initState();
-    int initialIndex = 0;
-    if (widget.initialTestament == 'OT') {
-      initialIndex = 1;
-    } else if (widget.initialTestament == 'NT') {
-      initialIndex = 2;
-    }
+    final initialIndex = (widget.initialTestament == 'NT') ? 1 : 0;
     _tabController = TabController(
-      length: 3,
+      length: 2,
       vsync: this,
       initialIndex: initialIndex,
     );
+
+    _scrollController.addListener(_onScroll);
+
+    if (initialIndex == 1) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_scrollController.hasClients) return;
+        final targetOffset = _getNtOffset();
+        final maxScroll = _scrollController.position.maxScrollExtent;
+        _scrollController.jumpTo(targetOffset.clamp(0.0, maxScroll));
+      });
+    }
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     _tabController.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  double _getNtOffset() {
+    if (_currentOtCount == 0) return 0.0;
+    return _headerHeight + (_currentOtCount * _itemHeight);
+  }
+
+  void _scrollToSection(int index) {
+    if (!_scrollController.hasClients) return;
+    _isProgrammaticScrolling = true;
+
+    final targetOffset = index == 0 ? 0.0 : _getNtOffset();
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final clampedOffset = targetOffset.clamp(0.0, maxScroll);
+
+    _scrollController
+        .animateTo(
+      clampedOffset,
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeInOut,
+    )
+        .then((_) {
+      Future.delayed(const Duration(milliseconds: 80), () {
+        if (mounted) {
+          _isProgrammaticScrolling = false;
+        }
+      });
+    });
+  }
+
+  void _onScroll() {
+    if (_isProgrammaticScrolling) return;
+    if (!_scrollController.hasClients) return;
+
+    final ntOffset = _getNtOffset();
+    final isAtOrNearBottom =
+        _scrollController.position.pixels >= (_scrollController.position.maxScrollExtent - 20);
+
+    final int targetIndex;
+    if (_currentOtCount == 0) {
+      targetIndex = 1;
+    } else if (_currentNtCount == 0) {
+      targetIndex = 0;
+    } else if (isAtOrNearBottom || _scrollController.offset >= (ntOffset - 40)) {
+      targetIndex = 1;
+    } else {
+      targetIndex = 0;
+    }
+
+    if (_tabController.index != targetIndex && !_tabController.indexIsChanging) {
+      _tabController.animateTo(targetIndex);
+    }
   }
 
   @override
@@ -63,6 +131,7 @@ class _BookPickerModalState extends State<BookPickerModal> with SingleTickerProv
     final nav = context.watch<BibleNavigationProvider>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final surface2Color = isDark ? AppColors.darkSurface2 : AppColors.lightSurface2;
     final lineColor = isDark ? AppColors.darkLine : AppColors.lightLine;
     final accentColor = isDark ? AppColors.darkAccent : AppColors.lightAccent;
     final textColor = isDark ? AppColors.darkText : AppColors.lightText;
@@ -76,6 +145,9 @@ class _BookPickerModalState extends State<BookPickerModal> with SingleTickerProv
 
     final otBooks = allBooks.where((b) => b.isOldTestament).toList();
     final ntBooks = allBooks.where((b) => b.isNewTestament).toList();
+
+    _currentOtCount = otBooks.length;
+    _currentNtCount = ntBooks.length;
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
@@ -149,92 +221,178 @@ class _BookPickerModalState extends State<BookPickerModal> with SingleTickerProv
             ),
           ),
 
-          // Tabs
+          // 2 Tabs: Old and New Testament with underline + light shade
           TabBar(
             controller: _tabController,
-            indicatorColor: accentColor,
+            onTap: (index) => _scrollToSection(index),
+            indicator: BoxDecoration(
+              color: accentColor.withValues(alpha: isDark ? 0.14 : 0.08),
+              border: Border(
+                bottom: BorderSide(
+                  color: accentColor,
+                  width: 2.5,
+                ),
+              ),
+            ),
+            indicatorSize: TabBarIndicatorSize.tab,
             labelColor: accentColor,
             unselectedLabelColor: mutedColor,
             labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-            tabs: const [
-              Tab(text: 'എല്ലാം (66)'),
-              Tab(text: 'പഴയ നിയമം (39)'),
-              Tab(text: 'പുതിയ നിയമം (27)'),
+            tabs: [
+              Tab(text: 'പഴയ നിയമം (${otBooks.length})'),
+              Tab(text: 'പുതിയ നിയമം (${ntBooks.length})'),
             ],
           ),
 
-          const Divider(height: 1),
+          Divider(height: 1, color: lineColor),
 
-          // Tab views with books list
+          // Single scrollable list containing Old and New Testament books
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildBookList(allBooks, nav.currentBook?.code, isDark),
-                _buildBookList(otBooks, nav.currentBook?.code, isDark),
-                _buildBookList(ntBooks, nav.currentBook?.code, isDark),
-              ],
-            ),
+            child: allBooks.isEmpty
+                ? Center(
+                    child: Text(
+                      'പുസ്തകം കണ്ടെത്തിയില്ല',
+                      style: TextStyle(
+                        color: mutedColor,
+                        fontSize: 14,
+                      ),
+                    ),
+                  )
+                : NotificationListener<ScrollNotification>(
+                    onNotification: (notification) {
+                      if (notification is UserScrollNotification) {
+                        _isProgrammaticScrolling = false;
+                      }
+                      return false;
+                    },
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      itemCount: (otBooks.isNotEmpty ? otBooks.length + 1 : 0) +
+                          (ntBooks.isNotEmpty ? ntBooks.length + 1 : 0),
+                      itemBuilder: (context, index) {
+                        // OT section
+                        if (otBooks.isNotEmpty) {
+                          if (index == 0) {
+                            return _buildSectionHeader(
+                              'പഴയ നിയമം (${otBooks.length} പുസ്തകങ്ങൾ)',
+                              surface2Color,
+                              accentColor,
+                              lineColor,
+                            );
+                          }
+                          if (index <= otBooks.length) {
+                            final book = otBooks[index - 1];
+                            return _buildBookTile(
+                              book: book,
+                              isSelected: book.code == nav.currentBook?.code,
+                              surface2Color: surface2Color,
+                              accentColor: accentColor,
+                              textColor: textColor,
+                              mutedColor: mutedColor,
+                              lineColor: lineColor,
+                            );
+                          }
+                        }
+
+                        // NT section
+                        final ntOffsetIndex = otBooks.isNotEmpty ? index - (otBooks.length + 1) : index;
+                        if (ntOffsetIndex == 0) {
+                          return _buildSectionHeader(
+                            'പുതിയ നിയമം (${ntBooks.length} പുസ്തകങ്ങൾ)',
+                            surface2Color,
+                            accentColor,
+                            lineColor,
+                          );
+                        }
+
+                        final book = ntBooks[ntOffsetIndex - 1];
+                        return _buildBookTile(
+                          book: book,
+                          isSelected: book.code == nav.currentBook?.code,
+                          surface2Color: surface2Color,
+                          accentColor: accentColor,
+                          textColor: textColor,
+                          mutedColor: mutedColor,
+                          lineColor: lineColor,
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBookList(List<BibleBook> booksList, String? currentCode, bool isDark) {
-    if (booksList.isEmpty) {
-      return Center(
-        child: Text(
-          'പുസ്തകം കണ്ടെത്തിയില്ല',
-          style: TextStyle(
-            color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
-            fontSize: 14,
-          ),
+  Widget _buildSectionHeader(String title, Color bgColor, Color textColor, Color lineColor) {
+    return Container(
+      height: _headerHeight,
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(
+        color: bgColor,
+        border: Border(
+          bottom: BorderSide(color: lineColor),
         ),
-      );
-    }
+      ),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: textColor,
+          letterSpacing: 0.3,
+        ),
+      ),
+    );
+  }
 
-    final accentColor = isDark ? AppColors.darkAccent : AppColors.lightAccent;
-    final surface2Color = isDark ? AppColors.darkSurface2 : AppColors.lightSurface2;
-    final lineColor = isDark ? AppColors.darkLine : AppColors.lightLine;
-
-    return ListView.separated(
-      itemCount: booksList.length,
-      separatorBuilder: (_, __) => Divider(height: 1, color: lineColor.withOpacity(0.5)),
-      itemBuilder: (context, index) {
-        final book = booksList[index];
-        final isSelected = book.code == currentCode;
-
-        return ListTile(
-          dense: true,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
-          tileColor: isSelected ? surface2Color : null,
-          title: Text(
-            book.name,
-            style: TextStyle(
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              color: isSelected ? accentColor : (isDark ? AppColors.darkText : AppColors.lightText),
-              fontSize: 15,
-            ),
-          ),
-          trailing: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: isSelected ? accentColor.withOpacity(0.15) : surface2Color,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: lineColor),
-            ),
-            child: Text(
-              '${book.totalChapters} അധ്യായങ്ങൾ',
+  Widget _buildBookTile({
+    required BibleBook book,
+    required bool isSelected,
+    required Color surface2Color,
+    required Color accentColor,
+    required Color textColor,
+    required Color mutedColor,
+    required Color lineColor,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 51,
+          child: ListTile(
+            dense: true,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+            tileColor: isSelected ? surface2Color : null,
+            title: Text(
+              book.name,
               style: TextStyle(
-                fontSize: 11,
-                color: isSelected ? accentColor : (isDark ? AppColors.darkMuted : AppColors.lightMuted),
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? accentColor : textColor,
+                fontSize: 15,
               ),
             ),
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: isSelected ? accentColor.withValues(alpha: 0.15) : surface2Color,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: lineColor),
+              ),
+              child: Text(
+                '${book.totalChapters} അധ്യായങ്ങൾ',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: isSelected ? accentColor : mutedColor,
+                ),
+              ),
+            ),
+            onTap: () => widget.onBookSelected(book),
           ),
-          onTap: () => widget.onBookSelected(book),
-        );
-      },
+        ),
+        Divider(height: 1, color: lineColor.withValues(alpha: 0.5)),
+      ],
     );
   }
 }

@@ -37,8 +37,8 @@ class VerseItemWidget extends StatelessWidget {
     Color? backgroundColor;
     if (highlightColorName != null) {
       backgroundColor = AppColors.getHighlightColor(highlightColorName, isDark);
-    } else if (isTargeted) {
-      backgroundColor = (isDark ? AppColors.darkAccent : AppColors.lightAccent).withOpacity(0.18);
+    } else if (isTargeted && verse.verse != 1) {
+      backgroundColor = (isDark ? AppColors.darkAccent : AppColors.lightAccent).withValues(alpha: 0.18);
     }
 
     return InkWell(

@@ -61,11 +61,11 @@ class AboutScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: accentColor.withOpacity(0.12),
+                    color: accentColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'Version ${AppConstants.appVersion} (${AppConstants.appBuild})',
+                    'Version ${AppConstants.appVersion}',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
