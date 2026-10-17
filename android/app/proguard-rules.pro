@@ -10,6 +10,10 @@
 -keep class com.tekartik.sqflite.** { *; }
 -keep class androidx.sqlite.** { *; }
 
+# Keep SharedPreferences plugin
+-keep class io.flutter.plugins.sharedpreferences.** { *; }
+-dontwarn io.flutter.plugins.sharedpreferences.**
+
 # Keep models and reflection
 -dontwarn io.flutter.embedding.**
 -dontwarn androidx.**

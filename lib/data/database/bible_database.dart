@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -12,13 +13,20 @@ import '../models/note_item.dart';
 class BibleDatabase {
   static final BibleDatabase instance = BibleDatabase._init();
   static Database? _database;
+  static Future<Database>? _initFuture;
 
   BibleDatabase._init();
 
   Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDB('pocketbible.db');
-    return _database!;
+    if (_database != null && _database!.isOpen) return _database!;
+    _initFuture ??= _initDB('pocketbible.db');
+    try {
+      _database = await _initFuture!;
+      return _database!;
+    } catch (e) {
+      _initFuture = null;
+      rethrow;
+    }
   }
 
   Future<Database> _initDB(String fileName) async {
@@ -30,16 +38,25 @@ class BibleDatabase {
     }
 
     final path = join(documentsDirectory.path, fileName);
-    final exists = await File(path).exists();
+    final file = File(path);
+    final exists = await file.exists();
+    final isValidSize = exists && (await file.length()) > 1024 * 1024;
 
-    if (!exists) {
-      // Copy pre-built database from asset to disk
+    if (!isValidSize) {
+      // Copy pre-built database from asset to disk safely using a temporary file
       try {
         await Directory(dirname(path)).create(recursive: true);
         ByteData data = await rootBundle.load('assets/database/pocketbible.db');
         List<int> bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-        await File(path).writeAsBytes(bytes, flush: true);
+        final tmpPath = '$path.tmp';
+        final tmpFile = File(tmpPath);
+        await tmpFile.writeAsBytes(bytes, flush: true);
+        if (await file.exists()) {
+          await file.delete();
+        }
+        await tmpFile.rename(path);
       } catch (e) {
+        debugPrint('Error copying assets database: $e');
         // Fallback: create empty DB if asset copy fails
       }
     }

@@ -66,6 +66,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
         _isLoading = false;
       });
 
+      // Record reading history & last read position
+      nav.recordCurrentReading();
+
       // Auto-scroll to target verse if requested
       if (nav.targetVerse != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {

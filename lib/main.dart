@@ -11,21 +11,40 @@ import 'providers/search_provider.dart';
 import 'providers/theme_provider.dart';
 import 'presentation/screens/home/home_screen.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+import 'core/constants/app_constants.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Set system UI overlay style
+  // Pre-load saved theme mode for instant matching on startup
+  ThemeMode initialTheme = ThemeMode.light;
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final savedTheme = prefs.getString(AppConstants.keyThemeMode);
+    if (savedTheme == 'dark') {
+      initialTheme = ThemeMode.dark;
+    } else if (savedTheme == 'system') {
+      initialTheme = ThemeMode.system;
+    }
+  } catch (e) {
+    debugPrint('Error pre-loading theme: $e');
+  }
+
+  final isDark = initialTheme == ThemeMode.dark;
+
+  // Set initial system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
+    SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
     ),
   );
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider(initialMode: initialTheme)),
         ChangeNotifierProvider(create: (_) => ReaderSettingsProvider()),
         ChangeNotifierProvider(create: (_) => BibleNavigationProvider()),
         ChangeNotifierProvider(create: (_) => BookmarksProvider()),

@@ -103,13 +103,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         style: TextStyle(fontSize: 12, color: mutedColor),
                       ),
                       trailing: Icon(Icons.chevron_right, size: 18, color: mutedColor),
-                      onTap: () {
+                      onTap: () async {
                         final nav = context.read<BibleNavigationProvider>();
                         nav.navigateTo(item['book_code'] as String, chapter);
-                        Navigator.push(
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) => const ReaderScreen()),
                         );
+                        if (mounted) {
+                          _loadHistory();
+                        }
                       },
                     );
                   },

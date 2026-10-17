@@ -83,6 +83,17 @@ class BibleNavigationProvider extends ChangeNotifier {
       _currentBook = _books.first;
       _currentChapter = 1;
       _selectedTestament = 'OT';
+      if (_lastReadPosition == null) {
+        final pos = ReadingPosition(
+          bookCode: _currentBook!.code,
+          bookName: _currentBook!.name,
+          chapter: 1,
+          verse: 1,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+        );
+        _lastReadPosition = pos;
+        _userDataRepository.saveLastRead(pos);
+      }
     }
   }
 
@@ -164,16 +175,27 @@ class BibleNavigationProvider extends ChangeNotifier {
     }
   }
 
-  void _saveCurrentPosition() {
+  Future<void> recordCurrentReading({int? chapter, int? verse}) async {
     if (_currentBook == null) return;
+    final ch = chapter ?? _currentChapter;
+    final v = verse ?? _targetVerse ?? 1;
     final pos = ReadingPosition(
       bookCode: _currentBook!.code,
       bookName: _currentBook!.name,
-      chapter: _currentChapter,
-      verse: _targetVerse ?? 1,
+      chapter: ch,
+      verse: v,
       timestamp: DateTime.now().millisecondsSinceEpoch,
     );
     _lastReadPosition = pos;
-    _userDataRepository.saveLastRead(pos);
+    notifyListeners();
+    try {
+      await _userDataRepository.saveLastRead(pos);
+    } catch (e) {
+      debugPrint('Error saving reading position: $e');
+    }
+  }
+
+  void _saveCurrentPosition() {
+    recordCurrentReading();
   }
 }
