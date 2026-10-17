@@ -1,4 +1,4 @@
-# Miscellaneous
+# Miscellaneous OS & Editor files
 *.class
 *.log
 *.pyc
@@ -9,14 +9,18 @@
 .history
 .svn/
 migrate_working_dir/
+Thumbs.db
+ehthumbs.db
+desktop.ini
 
-# IntelliJ / Android Studio related
+# IntelliJ / Android Studio / VS Code
 *.iml
 *.ipr
 *.iws
 .idea/
+.vscode/
 
-# Flutter/Dart/Pub related
+# Flutter / Dart / Pub related
 **/doc/api/
 .dart_tool/
 .flutter-plugins
@@ -26,19 +30,47 @@ migrate_working_dir/
 .pub/
 build/
 **/build/
+
+# Gradle
 .gradle/
 **/.gradle/
 
-# Android related
+# Android
 **/android/**/gradle-wrapper.jar
 **/android/captures/
-**/android/gradlew
-**/android/gradlew.bat
 **/android/local.properties
+**/local.properties
 **/android/**/GeneratedPluginRegistrant.java
+
+# Signing & Keystores (Security)
+*.jks
+*.keystore
+*.p12
+*.key
+key.properties
+**/key.properties
+
+# Secrets & Environment
+.env
+.env.*
+google-services.json
+GoogleService-Info.plist
+
+# Binaries & Bundles
+*.apk
+*.aab
+*.ap_
+*.dex
+*.hprof
+*.symbols
 
 # Coverage
 coverage/
 
-# Test screenshots in root
+# Temporary screenshots & screen recordings in root
 /*.png
+/*.jpg
+/*.jpeg
+/*.mp4
+/*.webm
+/*.gif
