@@ -60,7 +60,7 @@ class _DailyVerseCardState extends State<DailyVerseCard> {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: surfaceColor,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: lineColor),
         boxShadow: [
           BoxShadow(
@@ -73,25 +73,40 @@ class _DailyVerseCardState extends State<DailyVerseCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header row with Badge and Actions
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                AppConstants.dailyVerseKicker,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: accentColor,
-                  letterSpacing: 1.1,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.wb_sunny_rounded, size: 13, color: accentColor),
+                    const SizedBox(width: 5),
+                    Text(
+                      AppConstants.dailyVerseKicker,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: accentColor,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.copy, size: 18),
+                    icon: const Icon(Icons.copy_rounded, size: 18),
                     color: mutedColor,
                     tooltip: 'Copy verse',
-                    padding: EdgeInsets.zero,
+                    padding: const EdgeInsets.all(6),
                     constraints: const BoxConstraints(),
                     onPressed: () {
                       Clipboard.setData(ClipboardData(
@@ -100,16 +115,16 @@ class _DailyVerseCardState extends State<DailyVerseCard> {
                       ToastNotification.show(context, 'Verse copied');
                     },
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 6),
                   IconButton(
-                    icon: const Icon(Icons.share, size: 18),
+                    icon: const Icon(Icons.share_rounded, size: 18),
                     color: mutedColor,
                     tooltip: 'Share verse',
-                    padding: EdgeInsets.zero,
+                    padding: const EdgeInsets.all(6),
                     constraints: const BoxConstraints(),
                     onPressed: () {
                       Share.share(
-                        '${_dailyVerse!.reference}\n${_dailyVerse!.text}\n\n— PocketBible (സത്യവേദപുസ്തകം)',
+                        '${_dailyVerse!.reference}\n${_dailyVerse!.text}\n\n— PocketBible (സത്യവേദപുസ്തകം 1910)',
                       );
                     },
                   ),
@@ -117,7 +132,9 @@ class _DailyVerseCardState extends State<DailyVerseCard> {
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
+
+          // Reference Title
           Text(
             _dailyVerse!.reference,
             style: TextStyle(
@@ -127,15 +144,30 @@ class _DailyVerseCardState extends State<DailyVerseCard> {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            _dailyVerse!.text,
-            style: TextStyle(
-              fontSize: 15,
-              height: 1.8,
-              color: textColor.withOpacity(0.9),
+
+          // Verse Content
+          Container(
+            padding: const EdgeInsets.only(left: 10),
+            decoration: BoxDecoration(
+              border: Border(
+                left: BorderSide(
+                  color: accentColor.withValues(alpha: 0.4),
+                  width: 3,
+                ),
+              ),
+            ),
+            child: Text(
+              _dailyVerse!.text,
+              style: TextStyle(
+                fontSize: 15,
+                height: 1.8,
+                color: textColor.withValues(alpha: 0.9),
+              ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
+
+          // Read Chapter Button
           InkWell(
             onTap: () {
               final nav = context.read<BibleNavigationProvider>();
@@ -149,18 +181,28 @@ class _DailyVerseCardState extends State<DailyVerseCard> {
                 MaterialPageRoute(builder: (_) => const ReaderScreen()),
               );
             },
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Read chapter →',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Read chapter',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: accentColor,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 15,
                     color: accentColor,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

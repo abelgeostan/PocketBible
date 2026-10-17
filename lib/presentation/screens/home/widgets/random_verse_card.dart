@@ -23,7 +23,7 @@ class RandomVerseCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: surfaceColor,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: lineColor),
         boxShadow: [
           BoxShadow(
@@ -36,55 +36,50 @@ class RandomVerseCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            AppConstants.randomVerseKicker,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: accentColor,
-              letterSpacing: 1.1,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('🎲', style: TextStyle(fontSize: 12)),
+                const SizedBox(width: 5),
+                Text(
+                  AppConstants.randomVerseKicker,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: accentColor,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           Text(
             AppConstants.randomVerseTitle,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 17,
               fontWeight: FontWeight.w700,
               color: textColor,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           Text(
-            'Find an inspirational verse from anywhere in the Holy Bible.',
+            'Find an inspirational verse chosen at random from Holy Scripture.',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 13,
               color: mutedColor,
               height: 1.5,
             ),
           ),
           const SizedBox(height: 14),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: surface2Color,
-              foregroundColor: textColor,
-              elevation: 0,
-              side: BorderSide(color: lineColor),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(9),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            ),
-            icon: const Text('🎲', style: TextStyle(fontSize: 16)),
-            label: Text(
-              'Random Verse',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: textColor,
-              ),
-            ),
-            onPressed: () async {
+          InkWell(
+            onTap: () async {
               final repo = BibleRepository();
               final ref = await repo.getRandomVerseRef();
               if (ref != null && context.mounted) {
@@ -96,6 +91,30 @@ class RandomVerseCard extends StatelessWidget {
                 );
               }
             },
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: surface2Color,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: lineColor),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.casino_outlined, size: 18, color: accentColor),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Get Random Verse',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: textColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
