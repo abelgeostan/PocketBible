@@ -7,14 +7,10 @@ import '../../bookmarks/bookmarks_screen.dart';
 
 class ReadingToolsBar extends StatelessWidget {
   final VoidCallback onCopyChapter;
-  final bool isFullScreen;
-  final VoidCallback onToggleFullScreen;
 
   const ReadingToolsBar({
     super.key,
     required this.onCopyChapter,
-    required this.isFullScreen,
-    required this.onToggleFullScreen,
   });
 
   @override
@@ -105,20 +101,6 @@ class ReadingToolsBar extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const BookmarksScreen()),
               );
             },
-            surfaceColor: surfaceColor,
-            surface2Color: surface2Color,
-            lineColor: lineColor,
-            accentColor: accentColor,
-            textColor: textColor,
-          ),
-
-          const SizedBox(width: 6),
-
-          // Full Screen Toggle
-          _buildToolButton(
-            label: isFullScreen ? 'Exit ⛶' : '⛶ Full',
-            isActive: isFullScreen,
-            onTap: onToggleFullScreen,
             surfaceColor: surfaceColor,
             surface2Color: surface2Color,
             lineColor: lineColor,

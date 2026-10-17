@@ -29,7 +29,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
   List<BibleVerse> _verses = [];
   bool _isLoading = true;
-  bool _isFullScreen = false;
   String _loadedKey = '';
 
   @override
@@ -126,9 +125,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
     return Scaffold(
       drawer: const AppDrawer(),
-      appBar: _isFullScreen
-          ? null
-          : AppBar(
+      appBar: AppBar(
               titleSpacing: 0,
               leading: Builder(
                 builder: (ctx) => IconButton(
@@ -243,10 +240,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
           child: Column(
             children: [
               // Sticky / Top Bible Navigation Selector
-              if (!_isFullScreen) ...[
-                const StickySelectorBar(navigateOnChapterSelect: false),
-                const SizedBox(height: 12),
-              ],
+              const StickySelectorBar(navigateOnChapterSelect: false),
+              const SizedBox(height: 12),
 
               // Reading Content
               Expanded(
@@ -255,54 +250,29 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     : ListView(
                         controller: _scrollController,
                         children: [
-                          if (!_isFullScreen) ...[
-                            // Breadcrumb
-                            Row(
-                              children: [
-                                Text(
-                                  book?.name ?? '',
-                                  style: TextStyle(fontSize: 13, color: mutedColor),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                                  child: Icon(Icons.chevron_right, size: 14, color: mutedColor),
-                                ),
-                                Text(
-                                  'Chapter $chapter',
-                                  style: TextStyle(fontSize: 13, color: mutedColor),
-                                ),
-                              ],
+                          // Chapter Title Heading
+                          Container(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            decoration: BoxDecoration(
+                              border: Border(bottom: BorderSide(color: lineColor)),
                             ),
-                            const SizedBox(height: 8),
-
-                            // Chapter Title Heading
-                            Container(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              decoration: BoxDecoration(
-                                border: Border(bottom: BorderSide(color: lineColor)),
-                              ),
-                              child: Text(
-                                '${book?.name ?? ""} $chapter',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w700,
-                                  color: textColor,
-                                ),
+                            child: Text(
+                              '${book?.name ?? ""} $chapter',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w700,
+                                color: textColor,
                               ),
                             ),
-                            const SizedBox(height: 12),
+                          ),
+                          const SizedBox(height: 12),
 
-                            // Reading Tools Bar
-                            ReadingToolsBar(
-                              onCopyChapter: _copyFullChapter,
-                              isFullScreen: _isFullScreen,
-                              onToggleFullScreen: () {
-                                setState(() => _isFullScreen = !_isFullScreen);
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                          ],
+                          // Reading Tools Bar
+                          ReadingToolsBar(
+                            onCopyChapter: _copyFullChapter,
+                          ),
+                          const SizedBox(height: 16),
 
                           // Bible Text Card (matching .bible-text)
                           Container(
