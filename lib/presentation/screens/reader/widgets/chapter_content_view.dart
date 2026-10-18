@@ -57,6 +57,7 @@ class _ChapterContentViewState extends State<ChapterContentView> {
   @override
   void initState() {
     super.initState();
+    _lastJumpToken = widget.verseJumpToken;
     _scrollController.addListener(_onScroll);
     final key = '${widget.book.code}-${widget.chapter}';
     if (ChapterContentView._versesCache.containsKey(key)) {
@@ -116,6 +117,7 @@ class _ChapterContentViewState extends State<ChapterContentView> {
   void didUpdateWidget(covariant ChapterContentView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.book.code != oldWidget.book.code || widget.chapter != oldWidget.chapter) {
+      _lastJumpToken = widget.verseJumpToken;
       final key = '${widget.book.code}-${widget.chapter}';
       if (ChapterContentView._versesCache.containsKey(key)) {
         setState(() {
@@ -155,19 +157,22 @@ class _ChapterContentViewState extends State<ChapterContentView> {
   }
 
   void _checkTargetVerse() {
-    if (widget.targetVerse != null) {
+    if (widget.targetVerse != null && widget.targetVerse! > 1) {
       final target = widget.targetVerse!;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToVerse(target);
-        if (target > 1) {
-          _startHighlightTimer(target);
-        } else {
-          _highlightTimer?.cancel();
-          if (_highlightedVerse != null) {
-            setState(() => _highlightedVerse = null);
-          }
-        }
+        _startHighlightTimer(target);
       });
+    } else if (widget.targetVerse == 1) {
+      if (_scrollController.hasClients && _scrollController.offset > 15) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollToVerse(1);
+        });
+      }
+      _highlightTimer?.cancel();
+      if (_highlightedVerse != null) {
+        setState(() => _highlightedVerse = null);
+      }
     } else {
       _highlightTimer?.cancel();
       if (_highlightedVerse != null) {
@@ -253,8 +258,8 @@ class _ChapterContentViewState extends State<ChapterContentView> {
       controller: _scrollController,
       padding: EdgeInsets.zero,
       children: [
-        // Chapter Content Widget (Bible Text Card - moves with swipe)
-        if (_isLoading)
+            // Chapter Content Widget (Bible Text Card - moves with swipe)
+            if (_isLoading)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 60),
             child: Center(child: CircularProgressIndicator()),
