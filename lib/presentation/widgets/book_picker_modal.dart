@@ -139,8 +139,10 @@ class _BookPickerModalState extends State<BookPickerModal> with SingleTickerProv
 
     final allBooks = nav.books.where((b) {
       if (_searchFilter.isEmpty) return true;
-      return b.name.toLowerCase().contains(_searchFilter.toLowerCase()) ||
-          b.code.toLowerCase().contains(_searchFilter.toLowerCase());
+      final query = _searchFilter.toLowerCase();
+      return b.name.toLowerCase().contains(query) ||
+          b.code.toLowerCase().contains(query) ||
+          b.englishName.toLowerCase().contains(query);
     }).toList();
 
     final otBooks = allBooks.where((b) => b.isOldTestament).toList();
@@ -381,7 +383,7 @@ class _BookPickerModalState extends State<BookPickerModal> with SingleTickerProv
                 border: Border.all(color: lineColor),
               ),
               child: Text(
-                '${book.totalChapters} അധ്യായങ്ങൾ',
+                book.englishName,
                 style: TextStyle(
                   fontSize: 11,
                   color: isSelected ? accentColor : mutedColor,

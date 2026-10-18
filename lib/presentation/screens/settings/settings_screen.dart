@@ -4,9 +4,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
-import '../../../providers/bookmarks_provider.dart';
-import '../../../providers/highlights_provider.dart';
-import '../../../providers/notes_provider.dart';
 import '../../../providers/reader_settings_provider.dart';
 import '../../../providers/theme_provider.dart';
 import '../../widgets/toast_notification.dart';
@@ -19,9 +16,6 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
     final settings = context.watch<ReaderSettingsProvider>();
-    final bookmarks = context.watch<BookmarksProvider>();
-    final highlights = context.watch<HighlightsProvider>();
-    final notes = context.watch<NotesProvider>();
 
     final isDark = themeProvider.isDarkMode;
     final surface2Color = isDark ? AppColors.darkSurface2 : AppColors.lightSurface2;
@@ -170,42 +164,6 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 24),
-
-          // Section: Library Stats
-          _buildSectionTitle('എന്റെ ശേഖരം (My Library)', accentColor),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: Icon(Icons.bookmark_outline, color: accentColor),
-                  title: const Text('ബുക്ക്മാർക്കുകൾ (Bookmarks)'),
-                  trailing: Text(
-                    '${bookmarks.count}',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: accentColor),
-                  ),
-                ),
-                Divider(height: 1, color: lineColor),
-                ListTile(
-                  leading: Icon(Icons.format_color_fill_outlined, color: accentColor),
-                  title: const Text('ഹൈലൈറ്റുകൾ (Highlights)'),
-                  trailing: Text(
-                    '${highlights.count}',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: accentColor),
-                  ),
-                ),
-                Divider(height: 1, color: lineColor),
-                ListTile(
-                  leading: Icon(Icons.note_alt_outlined, color: accentColor),
-                  title: const Text('കുറിപ്പുകൾ (Notes)'),
-                  trailing: Text(
-                    '${notes.count}',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: accentColor),
-                  ),
-                ),
-              ],
-            ),
-          ),
 
           const SizedBox(height: 24),
 
