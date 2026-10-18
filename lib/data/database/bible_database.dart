@@ -69,10 +69,75 @@ class BibleDatabase {
       },
       onOpen: (db) async {
         await _ensureUserTables(db);
+        await _applyScriptureCorrections(db);
       },
     );
 
     return db;
+  }
+
+  Future<void> _applyScriptureCorrections(Database db) async {
+    try {
+      final pragmaRes = await db.rawQuery('PRAGMA user_version;');
+      final userVersion = pragmaRes.isNotEmpty ? (pragmaRes.first.values.first as int? ?? 0) : 0;
+      if (userVersion >= 2) return;
+
+      final batch = db.batch();
+
+      // 1. Titus 1:1 - remove test prefix
+      batch.rawUpdate('''
+        UPDATE verses 
+        SET text = REPLACE(text, 'Testing ag live sync ', '') 
+        WHERE book_code = 'TIT' AND chapter = 1 AND verse = 1 AND text LIKE 'Testing ag live sync%';
+      ''');
+
+      // 2. Genesis 5:5 - remove trailing image tag
+      batch.rawUpdate('''
+        UPDATE verses 
+        SET text = 'ആദാമിന്റെ ആയുഷ്കാലം ആകെ തൊള്ളായിരത്തി മുപ്പതു സംവത്സരമായിരുന്നു; പിന്നെ അവൻ മരിച്ചു.' 
+        WHERE book_code = 'GEN' AND chapter = 5 AND verse = 5 AND text LIKE '%alt=%';
+      ''');
+
+      // 3. Exodus 25:9 - remove trailing image tag
+      batch.rawUpdate('''
+        UPDATE verses 
+        SET text = 'തിരുനിവാസവും അതിന്റെ ഉപകരണങ്ങളും ഞാൻ കാണിക്കുന്ന മാതൃകപ്രകാരമൊക്കെയും തന്നേ ഉണ്ടാക്കേണം.' 
+        WHERE book_code = 'EXO' AND chapter = 25 AND verse = 9 AND text LIKE '%alt=%';
+      ''');
+
+      // 4. Joshua 13:7 - remove trailing image tag
+      batch.rawUpdate('''
+        UPDATE verses 
+        SET text = 'ആകയാൽ ഈ ദേശം ഒമ്പതു ഗോത്രങ്ങൾക്കും മനശ്ശെയുടെ പാതിഗോത്രത്തിന്നും അവകാശമായി വിഭാഗിക്ക.' 
+        WHERE book_code = 'JOS' AND chapter = 13 AND verse = 7 AND text LIKE '%alt=%';
+      ''');
+
+      // 5. Ephesians 6:13 - remove trailing image tag
+      batch.rawUpdate('''
+        UPDATE verses 
+        SET text = 'അതുകൊണ്ടു നിങ്ങൾ ദുർദ്ദിവസത്തിൽ എതിർപ്പാനും സകലവും സമാപിച്ചിട്ടു ഉറെച്ചു നില്പാനും കഴിയേണ്ടതിന്നു ദൈവത്തിന്റെ സർവ്വായുധവർഗ്ഗം എടുത്തുകൊൾവിൻ.' 
+        WHERE book_code = 'EPH' AND chapter = 6 AND verse = 13 AND text LIKE '%alt=%';
+      ''');
+
+      // 6. Luke 17:37 - remove USFM footnote markers
+      batch.rawUpdate('''
+        UPDATE verses 
+        SET text = 'അവർ അവനോടു: കർത്താവേ, എവിടെ എന്നു ചോദിച്ചതിന്നു: ശവം ഉള്ളേടത്തു കഴുക്കൾ കൂടും എന്നു അവൻ പറഞ്ഞു.' 
+        WHERE book_code = 'LUK' AND chapter = 17 AND verse = 37 AND text LIKE '%+w%';
+      ''');
+
+      // 7. Mark - remove leading '* ' from bulleted verses
+      batch.rawUpdate('''
+        UPDATE verses 
+        SET text = SUBSTR(text, 3) 
+        WHERE book_code = 'MRK' AND text LIKE '* %';
+      ''');
+
+      batch.execute('PRAGMA user_version = 2;');
+      await batch.commit(noResult: true);
+    } catch (e) {
+      debugPrint('Error applying scripture corrections: \$e');
+    }
   }
 
   Future<void> _createTables(Database db) async {
