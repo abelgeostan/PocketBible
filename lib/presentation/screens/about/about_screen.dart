@@ -146,7 +146,6 @@ class AboutScreen extends StatelessWidget {
                   _buildFeatureBullet('ദ്രുത തിരച്ചിൽ (Fast Malayalam Scripture Search)', textColor),
                   _buildFeatureBullet('ബുക്ക്മാർക്കുകൾ, വർണ്ണ ഹൈലൈറ്റുകൾ, വ്യക്തിഗത കുറിപ്പുകൾ', textColor),
                   _buildFeatureBullet('ലൈറ്റ് / ഡാർക്ക് തീം, ഫോണ്ട് വലിപ്പ ക്രമീകരണം', textColor),
-                  _buildFeatureBullet('വായനാ വീതി (Narrow / Normal / Wide) മാറ്റങ്ങൾ', textColor),
                   _buildFeatureBullet('ദിവസത്തെ വചനവും ക്രമരഹിത വചനവും (Daily & Random Verse)', textColor),
                   _buildFeatureBullet('അവസാനം വായിച്ച അധ്യായം ഓർത്തുസൂക്ഷിക്കുന്നു', textColor),
                 ],
