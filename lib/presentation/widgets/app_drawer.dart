@@ -264,6 +264,7 @@ class AppDrawer extends StatelessWidget {
                   textColor: textColor,
                   mutedColor: mutedColor,
                   accentColor: accentColor,
+                  enabled: false,
                   onTap: () {
                     Navigator.pop(context);
                     Share.share(
@@ -279,6 +280,7 @@ class AppDrawer extends StatelessWidget {
                   textColor: textColor,
                   mutedColor: mutedColor,
                   accentColor: accentColor,
+                  enabled: false,
                   onTap: () async {
                     Navigator.pop(context);
                     final url = Uri.parse(AppConstants.playStoreUrl);
@@ -320,15 +322,17 @@ class AppDrawer extends StatelessWidget {
     required Color mutedColor,
     required Color accentColor,
     required VoidCallback onTap,
+    bool enabled = true,
   }) {
     return ListTile(
-      leading: Icon(icon, color: accentColor, size: 22),
+      enabled: enabled,
+      leading: Icon(icon, color: enabled ? accentColor : mutedColor.withValues(alpha: 0.4), size: 22),
       title: Text(
         title,
         style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: textColor,
+          color: enabled ? textColor : mutedColor.withValues(alpha: 0.4),
         ),
       ),
       subtitle: subtitle != null
@@ -355,7 +359,7 @@ class AppDrawer extends StatelessWidget {
             )
           : null,
       dense: true,
-      onTap: onTap,
+      onTap: enabled ? onTap : null,
     );
   }
 }

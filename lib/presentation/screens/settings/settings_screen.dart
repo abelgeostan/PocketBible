@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../providers/reader_settings_provider.dart';
 import '../../../providers/theme_provider.dart';
-import '../../widgets/toast_notification.dart';
 import '../about/about_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -167,8 +165,8 @@ class SettingsScreen extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          // Section: Play Store & About
-          _buildSectionTitle('വിവരങ്ങളും പിന്തുണയും (About & Play Store)', accentColor),
+          // Section: About & Privacy
+          _buildSectionTitle('വിവരങ്ങൾ (About)', accentColor),
           Card(
             child: Column(
               children: [
@@ -181,33 +179,6 @@ class SettingsScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const AboutScreen()),
-                    );
-                  },
-                ),
-                Divider(height: 1, color: lineColor),
-                ListTile(
-                  leading: Icon(Icons.star_rate_outlined, color: accentColor),
-                  title: const Text('Play Store-ൽ റേറ്റ് ചെയ്യുക (Rate App)'),
-                  trailing: const Icon(Icons.open_in_new, size: 18),
-                  onTap: () async {
-                    final url = Uri.parse(AppConstants.playStoreUrl);
-                    if (await canLaunchUrl(url)) {
-                      await launchUrl(url, mode: LaunchMode.externalApplication);
-                    } else {
-                      if (context.mounted) {
-                        ToastNotification.show(context, 'Opening Play Store...');
-                      }
-                    }
-                  },
-                ),
-                Divider(height: 1, color: lineColor),
-                ListTile(
-                  leading: Icon(Icons.share_outlined, color: accentColor),
-                  title: const Text('സുഹൃത്തുക്കൾക്ക് പങ്കിടുക (Share App)'),
-                  onTap: () {
-                    Share.share(
-                      'PocketBible — മലയാളം സത്യവേദപുസ്തകം 1910 മൊബൈൽ ആപ്പ് ഡൗൺലോഡ് ചെയ്യുക:\n${AppConstants.playStoreUrl}',
-                      subject: 'PocketBible Malayalam Holy Bible App',
                     );
                   },
                 ),
