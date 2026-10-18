@@ -52,6 +52,7 @@ class _ChapterContentViewState extends State<ChapterContentView> {
   int? _highlightedVerse;
   Timer? _highlightTimer;
   int? _lastReportedVerse;
+  bool _isProgrammaticScroll = false;
 
   @override
   void initState() {
@@ -68,9 +69,10 @@ class _ChapterContentViewState extends State<ChapterContentView> {
   }
 
   void _onScroll() {
+    if (_isProgrammaticScroll) return;
     if (widget.onVerseVisible == null || _verses.isEmpty) return;
 
-    if (_scrollController.hasClients && _scrollController.offset <= 10) {
+    if (_scrollController.hasClients && _scrollController.offset <= 15) {
       if (_lastReportedVerse != 1) {
         _lastReportedVerse = 1;
         widget.onVerseVisible!(1);
@@ -78,18 +80,28 @@ class _ChapterContentViewState extends State<ChapterContentView> {
       return;
     }
 
+    final listContext = context;
+    final listRenderBox = listContext.findRenderObject() as RenderBox?;
+    if (listRenderBox == null || !listRenderBox.hasSize) return;
+
+    final listTop = listRenderBox.localToGlobal(Offset.zero).dy;
+    final referenceY = listTop + 15.0;
+
     int? visibleVerse;
-    double minPositiveDy = double.infinity;
 
     for (final v in _verses) {
       final key = _verseKeys[v.verse];
       final renderBox = key?.currentContext?.findRenderObject() as RenderBox?;
       if (renderBox != null && renderBox.hasSize && renderBox.attached) {
-        final position = renderBox.localToGlobal(Offset.zero);
-        // The sticky bar & buttons take around 180-220px from top
-        if (position.dy >= 100 && position.dy < minPositiveDy) {
-          minPositiveDy = position.dy;
+        final verseTop = renderBox.localToGlobal(Offset.zero).dy;
+        final verseBottom = verseTop + renderBox.size.height;
+
+        if (verseTop <= referenceY && verseBottom > referenceY) {
           visibleVerse = v.verse;
+          break;
+        } else if (verseTop > referenceY) {
+          visibleVerse ??= v.verse;
+          break;
         }
       }
     }
@@ -143,11 +155,18 @@ class _ChapterContentViewState extends State<ChapterContentView> {
   }
 
   void _checkTargetVerse() {
-    if (widget.targetVerse != null && widget.targetVerse! > 1) {
+    if (widget.targetVerse != null) {
       final target = widget.targetVerse!;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToVerse(target);
-        _startHighlightTimer(target);
+        if (target > 1) {
+          _startHighlightTimer(target);
+        } else {
+          _highlightTimer?.cancel();
+          if (_highlightedVerse != null) {
+            setState(() => _highlightedVerse = null);
+          }
+        }
       });
     } else {
       _highlightTimer?.cancel();
@@ -177,12 +196,23 @@ class _ChapterContentViewState extends State<ChapterContentView> {
   void _scrollToVerse(int verseNumber) {
     if (!_scrollController.hasClients) return;
 
+    _lastReportedVerse = verseNumber;
+    _isProgrammaticScroll = true;
+
+    void done() {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          _isProgrammaticScroll = false;
+        }
+      });
+    }
+
     if (verseNumber <= 1) {
       _scrollController.animateTo(
         0.0,
         duration: const Duration(milliseconds: 350),
         curve: Curves.easeInOutCubic,
-      );
+      ).then((_) => done());
       return;
     }
 
@@ -193,7 +223,7 @@ class _ChapterContentViewState extends State<ChapterContentView> {
         alignment: 0.0,
         duration: const Duration(milliseconds: 350),
         curve: Curves.easeInOutCubic,
-      );
+      ).then((_) => done());
     } else {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final retryKey = _verseKeys[verseNumber];
@@ -203,7 +233,9 @@ class _ChapterContentViewState extends State<ChapterContentView> {
             alignment: 0.0,
             duration: const Duration(milliseconds: 350),
             curve: Curves.easeInOutCubic,
-          );
+          ).then((_) => done());
+        } else {
+          done();
         }
       });
     }

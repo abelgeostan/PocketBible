@@ -79,6 +79,7 @@ class ReadingToolsBar extends StatelessWidget {
 
           // Copy Chapter Button
           _buildToolButton(
+            icon: Icons.copy_rounded,
             label: 'Copy chapter',
             isActive: false,
             onTap: onCopyChapter,
@@ -114,6 +115,7 @@ class ReadingToolsBar extends StatelessWidget {
 
   Widget _buildToolButton({
     required String label,
+    IconData? icon,
     required bool isActive,
     required VoidCallback onTap,
     required Color surfaceColor,
@@ -135,13 +137,26 @@ class ReadingToolsBar extends StatelessWidget {
             width: isActive ? 1.5 : 1,
           ),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-            color: isActive ? accentColor : textColor,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: 13,
+                color: isActive ? accentColor : textColor,
+              ),
+              const SizedBox(width: 5),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                color: isActive ? accentColor : textColor,
+              ),
+            ),
+          ],
         ),
       ),
     );

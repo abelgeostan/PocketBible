@@ -321,13 +321,17 @@ class _ReaderScreenState extends State<ReaderScreen> {
                                   decoration: BoxDecoration(
                                     border: Border(bottom: BorderSide(color: lineColor)),
                                   ),
-                                  child: Text(
-                                    '${ref.book.name} ${ref.chapter}',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 26,
-                                      fontWeight: FontWeight.w700,
-                                      color: textColor,
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      '${ref.book.name} ${ref.chapter}',
+                                      textAlign: TextAlign.center,
+                                      maxLines: 1,
+                                      style: TextStyle(
+                                        fontSize: 26,
+                                        fontWeight: FontWeight.w700,
+                                        color: textColor,
+                                      ),
                                     ),
                                   ),
                                 );

@@ -55,14 +55,38 @@ class _BookPickerModalState extends State<BookPickerModal> with SingleTickerProv
 
     _scrollController.addListener(_onScroll);
 
-    if (initialIndex == 1) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !_scrollController.hasClients) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      final nav = context.read<BibleNavigationProvider>();
+      final currentBook = nav.currentBook;
+
+      if (currentBook != null) {
+        final otBooks = nav.books.where((b) => b.isOldTestament).toList();
+        final ntBooks = nav.books.where((b) => b.isNewTestament).toList();
+
+        double targetOffset = 0.0;
+        final otIndex = otBooks.indexWhere((b) => b.code == currentBook.code);
+        if (otIndex != -1) {
+          // Inside OT: header (36) + index * itemHeight (52)
+          targetOffset = _headerHeight + (otIndex * _itemHeight);
+          if (_tabController.index != 0) _tabController.animateTo(0);
+        } else {
+          final ntIndex = ntBooks.indexWhere((b) => b.code == currentBook.code);
+          if (ntIndex != -1) {
+            // Inside NT: OT header (36) + OT count * 52 + NT header (36) + index * 52
+            targetOffset = _headerHeight + (otBooks.length * _itemHeight) + _headerHeight + (ntIndex * _itemHeight);
+            if (_tabController.index != 1) _tabController.animateTo(1);
+          }
+        }
+
+        final maxScroll = _scrollController.position.maxScrollExtent;
+        _scrollController.jumpTo(targetOffset.clamp(0.0, maxScroll));
+      } else if (initialIndex == 1) {
         final targetOffset = _getNtOffset();
         final maxScroll = _scrollController.position.maxScrollExtent;
         _scrollController.jumpTo(targetOffset.clamp(0.0, maxScroll));
-      });
-    }
+      }
+    });
   }
 
   @override
