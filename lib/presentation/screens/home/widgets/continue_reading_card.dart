@@ -25,7 +25,7 @@ class ContinueReadingCard extends StatelessWidget {
     return InkWell(
       onTap: () {
         nav.navigateTo(lastRead.bookCode, lastRead.chapter, verse: lastRead.verse);
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const ReaderScreen()),
         );

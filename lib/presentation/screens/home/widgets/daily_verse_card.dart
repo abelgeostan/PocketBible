@@ -176,7 +176,7 @@ class _DailyVerseCardState extends State<DailyVerseCard> {
                 _dailyVerse!.chapter,
                 verse: _dailyVerse!.verse,
               );
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (_) => const ReaderScreen()),
               );

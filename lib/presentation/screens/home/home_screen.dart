@@ -36,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final nav = context.read<BibleNavigationProvider>();
       if (!nav.isLoading && nav.currentBook != null) {
         _hasAutoOpened = true;
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const ReaderScreen()),
         );
@@ -54,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _hasAutoOpened = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const ReaderScreen()),
           );

@@ -85,7 +85,7 @@ class RandomVerseCard extends StatelessWidget {
               if (ref != null && context.mounted) {
                 final nav = context.read<BibleNavigationProvider>();
                 nav.navigateTo(ref['c'] as String, ref['ch'] as int, verse: ref['v'] as int);
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (_) => const ReaderScreen()),
                 );

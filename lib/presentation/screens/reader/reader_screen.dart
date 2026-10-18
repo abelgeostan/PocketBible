@@ -188,14 +188,10 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final chapter = nav.currentChapter;
 
     return PopScope(
-      canPop: Navigator.canPop(context),
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const HomeScreen(autoOpenLastRead: false)),
-          );
-        }
+        if (didPop) return;
+        SystemNavigator.pop();
       },
       child: Scaffold(
       drawer: const AppDrawer(),

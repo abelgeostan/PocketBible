@@ -57,7 +57,7 @@ class QuickActionsGrid extends StatelessWidget {
                   }
                   if (context.mounted) {
                     nav.navigateTo(book.code, chapter, verse: verse);
-                    Navigator.push(
+                    Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (_) => const ReaderScreen()),
                     );

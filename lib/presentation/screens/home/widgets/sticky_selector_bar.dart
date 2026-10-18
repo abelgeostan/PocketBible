@@ -191,7 +191,7 @@ class StickySelectorBar extends StatelessWidget {
         if (context.mounted) {
           nav.selectChapter(selectedChapter, verse: selectedVerse);
           if (navigateOnChapterSelect) {
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (_) => const ReaderScreen()),
             );
@@ -225,7 +225,7 @@ class StickySelectorBar extends StatelessWidget {
       if (context.mounted) {
         nav.selectChapter(ch, verse: selectedVerse);
         if (navigateOnChapterSelect) {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const ReaderScreen()),
           );
@@ -248,7 +248,7 @@ class StickySelectorBar extends StatelessWidget {
     if (selectedVerse != null && context.mounted) {
       nav.selectVerse(selectedVerse);
       if (navigateOnChapterSelect) {
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const ReaderScreen()),
         );
