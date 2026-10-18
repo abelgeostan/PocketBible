@@ -176,33 +176,14 @@ class _ChapterContentViewState extends State<ChapterContentView> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
     final lineColor = isDark ? AppColors.darkLine : AppColors.lightLine;
-    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
     final accentColor = isDark ? AppColors.darkAccent : AppColors.lightAccent;
 
     return ListView(
       key: PageStorageKey('chapter_${widget.book.code}_${widget.chapter}'),
       controller: _scrollController,
-      padding: const EdgeInsets.only(top: 4, bottom: 30),
+      padding: EdgeInsets.zero,
       children: [
-        // 1. Chapter Title Heading (moves with swipe)
-        Container(
-          padding: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: lineColor)),
-          ),
-          child: Text(
-            '${widget.book.name} ${widget.chapter}',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w700,
-              color: textColor,
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // 2. Chapter Content Widget (Bible Text Card - moves with swipe)
+        // Chapter Content Widget (Bible Text Card - moves with swipe)
         if (_isLoading)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 60),

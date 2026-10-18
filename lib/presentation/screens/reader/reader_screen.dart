@@ -34,6 +34,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   final BibleRepository _bibleRepository = BibleRepository();
   List<ChapterRef> _allChapters = [];
   PageController? _pageController;
+  PageController? _headingPageController;
   int _currentPageIndex = 0;
   bool _isExternalNavigation = false;
 
@@ -50,6 +51,21 @@ class _ReaderScreenState extends State<ReaderScreen> {
     _allChapters = _buildAllChapters(nav.books);
     _currentPageIndex = _indexOf(nav.currentBook?.code, nav.currentChapter);
     _pageController = PageController(initialPage: _currentPageIndex);
+    _headingPageController = PageController(initialPage: _currentPageIndex);
+
+    _pageController!.addListener(() {
+      if (_headingPageController != null &&
+          _headingPageController!.hasClients &&
+          _pageController!.hasClients &&
+          _pageController!.position.haveDimensions &&
+          _headingPageController!.position.haveDimensions) {
+        final contentOffset = _pageController!.offset;
+        if ((_headingPageController!.offset - contentOffset).abs() > 0.5) {
+          _headingPageController!.jumpTo(contentOffset);
+        }
+      }
+    });
+
     _preloadAdjacent(_currentPageIndex);
   }
 
@@ -129,6 +145,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   @override
   void dispose() {
     _pageController?.dispose();
+    _headingPageController?.dispose();
     super.dispose();
   }
 
@@ -169,6 +186,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
         if ((_pageController!.page?.round() ?? -1) != targetIndex) {
           _isExternalNavigation = true;
           _pageController!.jumpToPage(targetIndex);
+          if (_headingPageController != null && _headingPageController!.hasClients) {
+            _headingPageController!.jumpToPage(targetIndex);
+          }
           _preloadAdjacent(targetIndex);
         }
       }
@@ -288,15 +308,47 @@ class _ReaderScreenState extends State<ReaderScreen> {
             children: [
               // 1. Top Bible Navigation Selector (Stays stationary in position)
               const StickySelectorBar(navigateOnChapterSelect: false),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
 
-              // 2. Control Buttons / Reading Tools Bar (Stays stationary in position)
-              ReadingToolsBar(
-                onCopyChapter: _copyFullChapter,
+              // 2. Chapter Title Heading (Sticks vertically, but transitions horizontally with swipe)
+              SizedBox(
+                height: 48,
+                child: _allChapters.isEmpty
+                    ? const SizedBox.shrink()
+                    : PageView.builder(
+                        controller: _headingPageController,
+                        physics: const ClampingScrollPhysics(),
+                        itemCount: _allChapters.length,
+                        itemBuilder: (context, index) {
+                          final ref = _allChapters[index];
+                          return Container(
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.only(bottom: 12),
+                            decoration: BoxDecoration(
+                              border: Border(bottom: BorderSide(color: lineColor)),
+                            ),
+                            child: Text(
+                              '${ref.book.name} ${ref.chapter}',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w700,
+                                color: textColor,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
               ),
               const SizedBox(height: 12),
 
-              // 3. Swipeable Chapter Heading & Content Widget (Moves horizontally like a page slide)
+              // 3. Control Buttons / Reading Tools Bar (Sticky in middle, does not swipe)
+              ReadingToolsBar(
+                onCopyChapter: _copyFullChapter,
+              ),
+              const SizedBox(height: 16),
+
+              // 4. Chapter Content Widget (Verses card slides horizontally with swipe)
               Expanded(
                 child: _allChapters.isEmpty
                     ? const Center(child: CircularProgressIndicator())
