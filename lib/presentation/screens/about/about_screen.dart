@@ -183,7 +183,7 @@ class AboutScreen extends StatelessWidget {
                         onTap: () => _launchExternalUrl(AppConstants.sansnetUrl),
                         borderRadius: BorderRadius.circular(4),
                         child: Text(
-                          'sansnet.in',
+                          'sansnet.com',
                           style: TextStyle(
                             fontSize: 13,
                             height: 1.6,

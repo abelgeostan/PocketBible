@@ -106,15 +106,18 @@ class VerseItemWidget extends StatelessWidget {
                   if (settings.showVerseNumbers)
                     WidgetSpan(
                       alignment: PlaceholderAlignment.top,
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 6, top: 1),
-                        child: Text(
-                          '${verse.verse}',
-                          style: TextStyle(
-                            fontFamily: 'Arial',
-                            fontSize: (settings.fontSize * 0.72).clamp(11.0, 16.0),
-                            fontWeight: FontWeight.w700,
-                            color: isBookmarked ? accentColor : (isDark ? AppColors.darkAccent2 : AppColors.lightAccent2),
+                      child: Transform.translate(
+                        offset: const Offset(0, -3.5),
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: Text(
+                            '${verse.verse}',
+                            style: TextStyle(
+                              fontFamily: 'Arial',
+                              fontSize: (settings.fontSize * 0.72).clamp(11.0, 16.0),
+                              fontWeight: FontWeight.w700,
+                              color: isBookmarked ? accentColor : (isDark ? AppColors.darkAccent2 : AppColors.lightAccent2),
+                            ),
                           ),
                         ),
                       ),
