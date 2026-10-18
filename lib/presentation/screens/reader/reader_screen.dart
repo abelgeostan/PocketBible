@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -32,6 +33,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
   bool _isLoading = true;
   String _loadedKey = '';
   int _lastJumpToken = -1;
+  int? _highlightedVerse;
+  Timer? _highlightTimer;
 
   @override
   void initState() {
@@ -43,8 +46,26 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
   @override
   void dispose() {
+    _highlightTimer?.cancel();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _startHighlightTimer(int verseNumber) {
+    _highlightTimer?.cancel();
+    if (verseNumber <= 1) {
+      if (_highlightedVerse != null) {
+        setState(() => _highlightedVerse = null);
+      }
+      return;
+    }
+
+    setState(() => _highlightedVerse = verseNumber);
+    _highlightTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() => _highlightedVerse = null);
+      }
+    });
   }
 
   Future<void> _loadVerses() async {
@@ -75,11 +96,17 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
       // Auto-scroll to target verse if requested
       if (nav.targetVerse != null && nav.targetVerse! > 1) {
+        final target = nav.targetVerse!;
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          _scrollToVerse(nav.targetVerse!);
+          _scrollToVerse(target);
+          _startHighlightTimer(target);
         });
-      } else if (_scrollController.hasClients) {
-        _scrollController.jumpTo(0);
+      } else {
+        _highlightTimer?.cancel();
+        _highlightedVerse = null;
+        if (_scrollController.hasClients) {
+          _scrollController.jumpTo(0);
+        }
       }
     }
   }
@@ -147,6 +174,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
       final target = nav.targetVerse ?? 1;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToVerse(target);
+        _startHighlightTimer(target);
       });
     }
 
@@ -345,7 +373,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                                   padding: const EdgeInsets.only(bottom: 6),
                                   child: VerseItemWidget(
                                     verse: verse,
-                                    isTargeted: nav.targetVerse == verse.verse,
+                                    isTargeted: _highlightedVerse == verse.verse,
                                   ),
                                 );
                               }).toList(),

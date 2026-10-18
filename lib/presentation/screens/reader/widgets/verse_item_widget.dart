@@ -88,7 +88,10 @@ class VerseItemWidget extends StatelessWidget {
       },
       borderRadius: BorderRadius.circular(6),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
+        duration: isTargeted
+            ? const Duration(milliseconds: 250)
+            : const Duration(milliseconds: 1000),
+        curve: Curves.easeOut,
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         decoration: BoxDecoration(
           color: backgroundColor,
