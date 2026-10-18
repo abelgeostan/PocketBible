@@ -26,10 +26,12 @@ class ReaderScreen extends StatefulWidget {
 class _ReaderScreenState extends State<ReaderScreen> {
   final BibleRepository _bibleRepository = BibleRepository();
   final ScrollController _scrollController = ScrollController();
+  final Map<int, GlobalKey> _verseKeys = {};
 
   List<BibleVerse> _verses = [];
   bool _isLoading = true;
   String _loadedKey = '';
+  int _lastJumpToken = -1;
 
   @override
   void initState() {
@@ -54,6 +56,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
     setState(() => _isLoading = true);
     _loadedKey = key;
+    _verseKeys.clear();
 
     final verses = await _bibleRepository.getChapterVerses(
       nav.currentBook!.code,
@@ -68,12 +71,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
       // Record reading history & last read position
       nav.recordCurrentReading();
+      _lastJumpToken = nav.verseJumpToken;
 
       // Auto-scroll to target verse if requested
-      if (nav.targetVerse != null) {
+      if (nav.targetVerse != null && nav.targetVerse! > 1) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _scrollToVerse(nav.targetVerse!);
-          nav.clearTargetVerse();
         });
       } else if (_scrollController.hasClients) {
         _scrollController.jumpTo(0);
@@ -82,14 +85,38 @@ class _ReaderScreenState extends State<ReaderScreen> {
   }
 
   void _scrollToVerse(int verseNumber) {
-    final targetIndex = _verses.indexWhere((v) => v.verse == verseNumber);
-    if (targetIndex >= 0 && _scrollController.hasClients) {
-      final approxOffset = targetIndex * 65.0;
+    if (!_scrollController.hasClients) return;
+
+    if (verseNumber <= 1) {
       _scrollController.animateTo(
-        approxOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeOutCubic,
+        0.0,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOutCubic,
       );
+      return;
+    }
+
+    final key = _verseKeys[verseNumber];
+    if (key?.currentContext != null) {
+      Scrollable.ensureVisible(
+        key!.currentContext!,
+        alignment: 0.0,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOutCubic,
+      );
+    } else {
+      // Retry in next frame if key context is not ready yet
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final retryKey = _verseKeys[verseNumber];
+        if (retryKey?.currentContext != null && _scrollController.hasClients) {
+          Scrollable.ensureVisible(
+            retryKey!.currentContext!,
+            alignment: 0.0,
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeInOutCubic,
+          );
+        }
+      });
     }
   }
 
@@ -115,11 +142,11 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final currentKey = '${nav.currentBook?.code}-${nav.currentChapter}';
     if (currentKey != _loadedKey && !_isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _loadVerses());
-    } else if (nav.targetVerse != null && !_isLoading && _verses.isNotEmpty) {
-      final v = nav.targetVerse!;
+    } else if (nav.verseJumpToken != _lastJumpToken && !_isLoading && _verses.isNotEmpty) {
+      _lastJumpToken = nav.verseJumpToken;
+      final target = nav.targetVerse ?? 1;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToVerse(v);
-        nav.clearTargetVerse();
+        _scrollToVerse(target);
       });
     }
 
@@ -313,7 +340,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: _verses.map((verse) {
-                                return Padding(
+                                return Container(
+                                  key: _verseKeys.putIfAbsent(verse.verse, () => GlobalKey()),
                                   padding: const EdgeInsets.only(bottom: 6),
                                   child: VerseItemWidget(
                                     verse: verse,

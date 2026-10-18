@@ -13,6 +13,7 @@ class BibleNavigationProvider extends ChangeNotifier {
   BibleBook? _currentBook;
   int _currentChapter = 1;
   int? _targetVerse;
+  int _verseJumpToken = 0;
   ReadingPosition? _lastReadPosition;
   bool _isLoading = true;
 
@@ -29,6 +30,7 @@ class BibleNavigationProvider extends ChangeNotifier {
   BibleBook? get currentBook => _currentBook;
   int get currentChapter => _currentChapter;
   int? get targetVerse => _targetVerse;
+  int get verseJumpToken => _verseJumpToken;
   ReadingPosition? get lastReadPosition => _lastReadPosition;
   bool get isLoading => _isLoading;
 
@@ -125,12 +127,16 @@ class BibleNavigationProvider extends ChangeNotifier {
     if (_currentBook == null) return;
     _currentChapter = chapter.clamp(1, _currentBook!.totalChapters);
     _targetVerse = verse;
+    if (verse != null) {
+      _verseJumpToken++;
+    }
     _saveCurrentPosition();
     notifyListeners();
   }
 
   void selectVerse(int verse) {
     _targetVerse = verse;
+    _verseJumpToken++;
     _saveCurrentPosition();
     notifyListeners();
   }
@@ -142,6 +148,9 @@ class BibleNavigationProvider extends ChangeNotifier {
       _selectedTestament = book.testament;
       _currentChapter = chapter.clamp(1, book.totalChapters);
       _targetVerse = verse;
+      if (verse != null) {
+        _verseJumpToken++;
+      }
       _saveCurrentPosition();
       notifyListeners();
     } catch (_) {}
