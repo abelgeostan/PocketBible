@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../data/models/bible_book.dart';
 import '../../../data/models/bible_verse.dart';
 import '../../../data/repositories/bible_repository.dart';
 import '../../../providers/bible_navigation_provider.dart';
@@ -13,9 +14,14 @@ import '../../widgets/toast_notification.dart';
 import '../home/home_screen.dart';
 import '../home/widgets/sticky_selector_bar.dart';
 import '../search/search_screen.dart';
-import 'widgets/chapter_navigation_bar.dart';
+import 'widgets/chapter_content_view.dart';
 import 'widgets/reading_tools_bar.dart';
-import 'widgets/verse_item_widget.dart';
+
+class ChapterRef {
+  final BibleBook book;
+  final int chapter;
+  const ChapterRef(this.book, this.chapter);
+}
 
 class ReaderScreen extends StatefulWidget {
   const ReaderScreen({super.key});
@@ -26,132 +32,118 @@ class ReaderScreen extends StatefulWidget {
 
 class _ReaderScreenState extends State<ReaderScreen> {
   final BibleRepository _bibleRepository = BibleRepository();
-  final ScrollController _scrollController = ScrollController();
-  final Map<int, GlobalKey> _verseKeys = {};
-
-  List<BibleVerse> _verses = [];
-  bool _isLoading = true;
-  String _loadedKey = '';
-  int _lastJumpToken = -1;
-  int? _highlightedVerse;
-  Timer? _highlightTimer;
+  List<ChapterRef> _allChapters = [];
+  PageController? _pageController;
+  int _currentPageIndex = 0;
+  bool _isExternalNavigation = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadVerses();
-    });
+    final nav = context.read<BibleNavigationProvider>();
+    if (nav.books.isNotEmpty) {
+      _initChapters(nav);
+    }
+  }
+
+  void _initChapters(BibleNavigationProvider nav) {
+    _allChapters = _buildAllChapters(nav.books);
+    _currentPageIndex = _indexOf(nav.currentBook?.code, nav.currentChapter);
+    _pageController = PageController(initialPage: _currentPageIndex);
+    _preloadAdjacent(_currentPageIndex);
+  }
+
+  List<ChapterRef> _buildAllChapters(List<BibleBook> books) {
+    final list = <ChapterRef>[];
+    for (final b in books) {
+      for (int c = 1; c <= b.totalChapters; c++) {
+        list.add(ChapterRef(b, c));
+      }
+    }
+    return list;
+  }
+
+  int _indexOf(String? bookCode, int chapter) {
+    if (bookCode == null || _allChapters.isEmpty) return 0;
+    final idx = _allChapters.indexWhere((ref) => ref.book.code == bookCode && ref.chapter == chapter);
+    return idx != -1 ? idx : 0;
+  }
+
+  void _preloadAdjacent(int index) {
+    if (index > 0) {
+      final prev = _allChapters[index - 1];
+      final key = '${prev.book.code}-${prev.chapter}';
+      if (!ChapterContentView.hasCached(key)) {
+        _bibleRepository.getChapterVerses(prev.book.code, prev.chapter).then((verses) {
+          ChapterContentView.setCached(key, verses);
+        });
+      }
+    }
+    if (index < _allChapters.length - 1) {
+      final next = _allChapters[index + 1];
+      final key = '${next.book.code}-${next.chapter}';
+      if (!ChapterContentView.hasCached(key)) {
+        _bibleRepository.getChapterVerses(next.book.code, next.chapter).then((verses) {
+          ChapterContentView.setCached(key, verses);
+        });
+      }
+    }
+  }
+
+  void _onPageChanged(int index) {
+    _currentPageIndex = index;
+    _preloadAdjacent(index);
+
+    if (_isExternalNavigation) {
+      _isExternalNavigation = false;
+      return;
+    }
+
+    if (index >= 0 && index < _allChapters.length) {
+      final ref = _allChapters[index];
+      final nav = context.read<BibleNavigationProvider>();
+      if (ref.book.code != nav.currentBook?.code || ref.chapter != nav.currentChapter) {
+        nav.navigateTo(ref.book.code, ref.chapter);
+      }
+    }
+  }
+
+  void _goToNextChapter() {
+    if (_pageController != null && _pageController!.hasClients && _currentPageIndex < _allChapters.length - 1) {
+      _pageController!.nextPage(
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeInOutCubic,
+      );
+    }
+  }
+
+  void _goToPreviousChapter() {
+    if (_pageController != null && _pageController!.hasClients && _currentPageIndex > 0) {
+      _pageController!.previousPage(
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeInOutCubic,
+      );
+    }
   }
 
   @override
   void dispose() {
-    _highlightTimer?.cancel();
-    _scrollController.dispose();
+    _pageController?.dispose();
     super.dispose();
   }
 
-  void _startHighlightTimer(int verseNumber) {
-    _highlightTimer?.cancel();
-    if (verseNumber <= 1) {
-      if (_highlightedVerse != null) {
-        setState(() => _highlightedVerse = null);
-      }
-      return;
-    }
-
-    setState(() => _highlightedVerse = verseNumber);
-    _highlightTimer = Timer(const Duration(seconds: 3), () {
-      if (mounted) {
-        setState(() => _highlightedVerse = null);
-      }
-    });
-  }
-
-  Future<void> _loadVerses() async {
+  Future<void> _copyFullChapter() async {
     final nav = context.read<BibleNavigationProvider>();
     if (nav.currentBook == null) return;
 
     final key = '${nav.currentBook!.code}-${nav.currentChapter}';
-    if (key == _loadedKey && _verses.isNotEmpty) return;
-
-    setState(() => _isLoading = true);
-    _loadedKey = key;
-    _verseKeys.clear();
-
-    final verses = await _bibleRepository.getChapterVerses(
-      nav.currentBook!.code,
-      nav.currentChapter,
-    );
-
-    if (mounted) {
-      setState(() {
-        _verses = verses;
-        _isLoading = false;
-      });
-
-      // Record reading history & last read position
-      nav.recordCurrentReading();
-      _lastJumpToken = nav.verseJumpToken;
-
-      // Auto-scroll to target verse if requested
-      if (nav.targetVerse != null && nav.targetVerse! > 1) {
-        final target = nav.targetVerse!;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _scrollToVerse(target);
-          _startHighlightTimer(target);
-        });
-      } else {
-        _highlightTimer?.cancel();
-        _highlightedVerse = null;
-        if (_scrollController.hasClients) {
-          _scrollController.jumpTo(0);
-        }
-      }
+    List<BibleVerse>? verses = ChapterContentView.getCached(key);
+    if (verses == null || verses.isEmpty) {
+      verses = await _bibleRepository.getChapterVerses(nav.currentBook!.code, nav.currentChapter);
     }
-  }
+    if (verses.isEmpty || !mounted) return;
 
-  void _scrollToVerse(int verseNumber) {
-    if (!_scrollController.hasClients) return;
-
-    if (verseNumber <= 1) {
-      _scrollController.animateTo(
-        0.0,
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeInOutCubic,
-      );
-      return;
-    }
-
-    final key = _verseKeys[verseNumber];
-    if (key?.currentContext != null) {
-      Scrollable.ensureVisible(
-        key!.currentContext!,
-        alignment: 0.0,
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeInOutCubic,
-      );
-    } else {
-      // Retry in next frame if key context is not ready yet
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final retryKey = _verseKeys[verseNumber];
-        if (retryKey?.currentContext != null && _scrollController.hasClients) {
-          Scrollable.ensureVisible(
-            retryKey!.currentContext!,
-            alignment: 0.0,
-            duration: const Duration(milliseconds: 350),
-            curve: Curves.easeInOutCubic,
-          );
-        }
-      });
-    }
-  }
-
-  void _copyFullChapter() {
-    final nav = context.read<BibleNavigationProvider>();
-    if (nav.currentBook == null || _verses.isEmpty) return;
-
-    final versesText = _verses.map((v) => '${v.verse} ${v.text}').join('\n');
+    final versesText = verses.map((v) => '${v.verse} ${v.text}').join('\n');
     final fullText = '${nav.currentBook!.name} ${nav.currentChapter}\n\n$versesText';
 
     Clipboard.setData(ClipboardData(text: fullText));
@@ -165,17 +157,21 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final themeProvider = context.watch<ThemeProvider>();
     final isDark = themeProvider.isDarkMode;
 
-    // Detect if book or chapter changed in provider
-    final currentKey = '${nav.currentBook?.code}-${nav.currentChapter}';
-    if (currentKey != _loadedKey && !_isLoading) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _loadVerses());
-    } else if (nav.verseJumpToken != _lastJumpToken && !_isLoading && _verses.isNotEmpty) {
-      _lastJumpToken = nav.verseJumpToken;
-      final target = nav.targetVerse ?? 1;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToVerse(target);
-        _startHighlightTimer(target);
-      });
+    if (_allChapters.isEmpty && nav.books.isNotEmpty) {
+      _initChapters(nav);
+    }
+
+    // Sync PageController when provider is changed externally (e.g. from StickySelectorBar or Verse selector)
+    final targetIndex = _indexOf(nav.currentBook?.code, nav.currentChapter);
+    if (targetIndex != _currentPageIndex) {
+      _currentPageIndex = targetIndex;
+      if (_pageController != null && _pageController!.hasClients) {
+        if ((_pageController!.page?.round() ?? -1) != targetIndex) {
+          _isExternalNavigation = true;
+          _pageController!.jumpToPage(targetIndex);
+          _preloadAdjacent(targetIndex);
+        }
+      }
     }
 
     final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
@@ -184,9 +180,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final mutedColor = isDark ? AppColors.darkMuted : AppColors.lightMuted;
     final lineColor = isDark ? AppColors.darkLine : AppColors.lightLine;
 
-    final book = nav.currentBook;
-    final chapter = nav.currentChapter;
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -194,202 +187,144 @@ class _ReaderScreenState extends State<ReaderScreen> {
         SystemNavigator.pop();
       },
       child: Scaffold(
-      drawer: const AppDrawer(),
-      appBar: AppBar(
-              titleSpacing: 0,
-              leading: Builder(
-                builder: (ctx) => IconButton(
-                  icon: const Icon(Icons.menu),
-                  color: accentColor,
-                  tooltip: 'Menu',
-                  onPressed: () => Scaffold.of(ctx).openDrawer(),
-                ),
-              ),
-              title: InkWell(
-                onTap: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const HomeScreen(autoOpenLastRead: false)),
-                    (route) => false,
-                  );
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Image.asset(
-                        'assets/icons/pocketbible-icon-touch.png',
-                        width: 38,
-                        height: 28,
-                        fit: BoxFit.contain,
-                      ),
-                      const SizedBox(width: 8),
-                      RichText(
-                        text: TextSpan(
-                          text: 'PocketBible',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: accentColor,
-                            fontFamily: 'Noto Sans Malayalam',
-                          ),
-                          children: [
-                            TextSpan(
-                              text: '.in',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: mutedColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+        drawer: const AppDrawer(),
+        appBar: AppBar(
+          titleSpacing: 0,
+          leading: Builder(
+            builder: (ctx) => IconButton(
+              icon: const Icon(Icons.menu),
+              color: accentColor,
+              tooltip: 'Menu',
+              onPressed: () => Scaffold.of(ctx).openDrawer(),
+            ),
+          ),
+          title: InkWell(
+            onTap: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const HomeScreen(autoOpenLastRead: false)),
+                (route) => false,
+              );
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/icons/pocketbible-icon-touch.png',
+                    width: 38,
+                    height: 28,
+                    fit: BoxFit.contain,
                   ),
-                ),
-              ),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.search),
-                  color: textColor,
-                  tooltip: 'Search',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const SearchScreen()),
-                    );
-                  },
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: InkWell(
-                    onTap: () => themeProvider.toggleTheme(),
-                    borderRadius: BorderRadius.circular(999),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: lineColor),
-                        borderRadius: BorderRadius.circular(999),
-                        color: surfaceColor,
+                  const SizedBox(width: 8),
+                  RichText(
+                    text: TextSpan(
+                      text: 'PocketBible',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: accentColor,
+                        fontFamily: 'Noto Sans Malayalam',
                       ),
-                      child: Text(
-                        isDark ? '☀ Light' : '☾ Dark',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: textColor,
+                      children: [
+                        TextSpan(
+                          text: '.in',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: mutedColor,
+                          ),
                         ),
-                      ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.search),
+              color: textColor,
+              tooltip: 'Search',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SearchScreen()),
+                );
+              },
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: InkWell(
+                onTap: () => themeProvider.toggleTheme(),
+                borderRadius: BorderRadius.circular(999),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: lineColor),
+                    borderRadius: BorderRadius.circular(999),
+                    color: surfaceColor,
+                  ),
+                  child: Text(
+                    isDark ? '☀ Light' : '☾ Dark',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
-      body: GestureDetector(
-        onHorizontalDragEnd: (details) {
-          // Horizontal swipe navigation between chapters
-          if (details.primaryVelocity != null) {
-            if (details.primaryVelocity! < -300) {
-              // Swipe left -> Next Chapter
-              if (nav.hasNextChapter) {
-                nav.goToNextChapter();
-              }
-            } else if (details.primaryVelocity! > 300) {
-              // Swipe right -> Previous Chapter
-              if (nav.hasPreviousChapter) {
-                nav.goToPreviousChapter();
-              }
-            }
-          }
-        },
-        child: Padding(
+          ],
+        ),
+        body: Padding(
           padding: settings.readingPadding,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Sticky / Top Bible Navigation Selector
+              // 1. Top Bible Navigation Selector (Stays stationary in position)
               const StickySelectorBar(navigateOnChapterSelect: false),
+              const SizedBox(height: 10),
+
+              // 2. Control Buttons / Reading Tools Bar (Stays stationary in position)
+              ReadingToolsBar(
+                onCopyChapter: _copyFullChapter,
+              ),
               const SizedBox(height: 12),
 
-              // Reading Content
+              // 3. Swipeable Chapter Heading & Content Widget (Moves horizontally like a page slide)
               Expanded(
-                child: _isLoading
+                child: _allChapters.isEmpty
                     ? const Center(child: CircularProgressIndicator())
-                    : ListView(
-                        controller: _scrollController,
-                        children: [
-                          // Chapter Title Heading
-                          Container(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            decoration: BoxDecoration(
-                              border: Border(bottom: BorderSide(color: lineColor)),
-                            ),
-                            child: Text(
-                              '${book?.name ?? ""} $chapter',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w700,
-                                color: textColor,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-
-                          // Reading Tools Bar
-                          ReadingToolsBar(
-                            onCopyChapter: _copyFullChapter,
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Bible Text Card (matching .bible-text)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                            decoration: BoxDecoration(
-                              color: surfaceColor,
-                              borderRadius: BorderRadius.circular(15),
-                              border: Border.all(color: lineColor),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: isDark
-                                      ? Colors.black26
-                                      : const Color.fromRGBO(20, 30, 40, 0.06),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: _verses.map((verse) {
-                                return Container(
-                                  key: _verseKeys.putIfAbsent(verse.verse, () => GlobalKey()),
-                                  padding: const EdgeInsets.only(bottom: 6),
-                                  child: VerseItemWidget(
-                                    verse: verse,
-                                    isTargeted: _highlightedVerse == verse.verse,
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // Previous & Next Chapter Navigation Buttons
-                          const ChapterNavigationBar(),
-
-                          const SizedBox(height: 30),
-                        ],
+                    : PageView.builder(
+                        controller: _pageController,
+                        itemCount: _allChapters.length,
+                        onPageChanged: _onPageChanged,
+                        itemBuilder: (context, index) {
+                          final ref = _allChapters[index];
+                          final isCurrent = index == _currentPageIndex;
+                          return ChapterContentView(
+                            key: ValueKey('page_${ref.book.code}_${ref.chapter}'),
+                            book: ref.book,
+                            chapter: ref.chapter,
+                            hasPrevious: index > 0,
+                            hasNext: index < _allChapters.length - 1,
+                            onPrevious: _goToPreviousChapter,
+                            onNext: _goToNextChapter,
+                            targetVerse: isCurrent ? nav.targetVerse : null,
+                            verseJumpToken: isCurrent ? nav.verseJumpToken : 0,
+                          );
+                        },
                       ),
               ),
             ],
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
