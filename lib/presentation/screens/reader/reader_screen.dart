@@ -91,13 +91,33 @@ class _ReaderScreenState extends State<ReaderScreen> {
   }
 
   void _onPageChanged(int index) {
-    _currentPageIndex = index;
-    _preloadAdjacent(index);
-
     if (_isExternalNavigation) {
       _isExternalNavigation = false;
+      _currentPageIndex = index;
+      _preloadAdjacent(index);
       return;
     }
+
+    final oldIndex = _currentPageIndex;
+    if (oldIndex != index &&
+        oldIndex >= 0 &&
+        oldIndex < _allChapters.length &&
+        index >= 0 &&
+        index < _allChapters.length) {
+      final oldRef = _allChapters[oldIndex];
+      final newRef = _allChapters[index];
+      final isAdjacent = (index - oldIndex).abs() == 1;
+      ChapterContentView.onChapterChanged(
+        oldBookCode: oldRef.book.code,
+        oldChapter: oldRef.chapter,
+        newBookCode: newRef.book.code,
+        newChapter: newRef.chapter,
+        isAdjacentSwipe: isAdjacent,
+      );
+    }
+
+    _currentPageIndex = index;
+    _preloadAdjacent(index);
 
     if (index >= 0 && index < _allChapters.length) {
       final ref = _allChapters[index];
@@ -164,6 +184,20 @@ class _ReaderScreenState extends State<ReaderScreen> {
     // Sync PageController when provider is changed externally (e.g. from StickySelectorBar or Verse selector)
     final targetIndex = _indexOf(nav.currentBook?.code, nav.currentChapter);
     if (targetIndex != _currentPageIndex) {
+      if (_currentPageIndex >= 0 &&
+          _currentPageIndex < _allChapters.length &&
+          targetIndex >= 0 &&
+          targetIndex < _allChapters.length) {
+        final oldRef = _allChapters[_currentPageIndex];
+        final newRef = _allChapters[targetIndex];
+        ChapterContentView.onChapterChanged(
+          oldBookCode: oldRef.book.code,
+          oldChapter: oldRef.chapter,
+          newBookCode: newRef.book.code,
+          newChapter: newRef.chapter,
+          isAdjacentSwipe: false,
+        );
+      }
       _currentPageIndex = targetIndex;
       if (_pageController != null && _pageController!.hasClients) {
         if ((_pageController!.page?.round() ?? -1) != targetIndex) {
@@ -388,6 +422,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                             key: ValueKey('page_${ref.book.code}_${ref.chapter}'),
                             book: ref.book,
                             chapter: ref.chapter,
+                            isCurrent: isCurrent,
                             hasPrevious: index > 0,
                             hasNext: index < _allChapters.length - 1,
                             onPrevious: _goToPreviousChapter,

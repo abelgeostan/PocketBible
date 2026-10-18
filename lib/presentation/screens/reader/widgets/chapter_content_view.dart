@@ -7,9 +7,22 @@ import '../../../../data/models/bible_verse.dart';
 import '../../../../data/repositories/bible_repository.dart';
 import 'verse_item_widget.dart';
 
+class SavedChapterPosition {
+  final String key;
+  final double offset;
+  final int visibleVerse;
+
+  const SavedChapterPosition({
+    required this.key,
+    required this.offset,
+    required this.visibleVerse,
+  });
+}
+
 class ChapterContentView extends StatefulWidget {
   final BibleBook book;
   final int chapter;
+  final bool isCurrent;
   final bool hasPrevious;
   final bool hasNext;
   final VoidCallback onPrevious;
@@ -22,6 +35,7 @@ class ChapterContentView extends StatefulWidget {
     super.key,
     required this.book,
     required this.chapter,
+    this.isCurrent = false,
     required this.hasPrevious,
     required this.hasNext,
     required this.onPrevious,
@@ -32,10 +46,61 @@ class ChapterContentView extends StatefulWidget {
   });
 
   static final Map<String, List<BibleVerse>> _versesCache = {};
+  static SavedChapterPosition? _immediatePreviousPosition;
+  static final Map<String, _ChapterContentViewState> _activeStates = {};
 
   static bool hasCached(String key) => _versesCache.containsKey(key);
   static List<BibleVerse>? getCached(String key) => _versesCache[key];
   static void setCached(String key, List<BibleVerse> verses) => _versesCache[key] = verses;
+
+  static void onChapterChanged({
+    required String oldBookCode,
+    required int oldChapter,
+    required String newBookCode,
+    required int newChapter,
+    required bool isAdjacentSwipe,
+  }) {
+    final oldKey = '$oldBookCode-$oldChapter';
+    final newKey = '$newBookCode-$newChapter';
+
+    if (!isAdjacentSwipe) {
+      _immediatePreviousPosition = null;
+      for (final state in _activeStates.values) {
+        state.resetToTop();
+      }
+      return;
+    }
+
+    final isReturningToSaved = _immediatePreviousPosition != null &&
+        _immediatePreviousPosition!.key == newKey;
+
+    if (isReturningToSaved) {
+      final saved = _immediatePreviousPosition!;
+      final newState = _activeStates[newKey];
+      if (newState != null && newState.mounted) {
+        newState.restorePosition(saved.offset, saved.visibleVerse);
+      }
+    } else {
+      final newState = _activeStates[newKey];
+      if (newState != null && newState.mounted) {
+        newState.resetToTop();
+      }
+      for (final entry in _activeStates.entries) {
+        if (entry.key != newKey && entry.key != oldKey) {
+          entry.value.resetToTop();
+        }
+      }
+    }
+
+    final oldState = _activeStates[oldKey];
+    final oldOffset = oldState?.currentOffset ?? 0.0;
+    final oldVerse = oldState?.currentVisibleVerse ?? 1;
+    _immediatePreviousPosition = SavedChapterPosition(
+      key: oldKey,
+      offset: oldOffset,
+      visibleVerse: oldVerse,
+    );
+  }
 
   @override
   State<ChapterContentView> createState() => _ChapterContentViewState();
@@ -43,7 +108,7 @@ class ChapterContentView extends StatefulWidget {
 
 class _ChapterContentViewState extends State<ChapterContentView> {
   final BibleRepository _bibleRepository = BibleRepository();
-  final ScrollController _scrollController = ScrollController();
+  late final ScrollController _scrollController;
   final Map<int, GlobalKey> _verseKeys = {};
 
   List<BibleVerse> _verses = [];
@@ -53,37 +118,92 @@ class _ChapterContentViewState extends State<ChapterContentView> {
   Timer? _highlightTimer;
   int? _lastReportedVerse;
   bool _isProgrammaticScroll = false;
+  double _currentOffset = 0.0;
+
+  double get currentOffset => _currentOffset;
+  int get currentVisibleVerse => _lastReportedVerse ?? 1;
+
+  void restorePosition(double offset, int verse) {
+    _currentOffset = offset;
+    _lastReportedVerse = verse;
+    if (_scrollController.hasClients) {
+      if ((_scrollController.offset - offset).abs() > 1.0) {
+        _scrollController.jumpTo(offset);
+      }
+    }
+    if (widget.isCurrent && widget.onVerseVisible != null) {
+      widget.onVerseVisible!(verse);
+    }
+  }
+
+  void resetToTop() {
+    _currentOffset = 0.0;
+    _lastReportedVerse = 1;
+    if (_scrollController.hasClients) {
+      if (_scrollController.offset > 0.0) {
+        _scrollController.jumpTo(0.0);
+      }
+    }
+    if (widget.isCurrent && widget.onVerseVisible != null) {
+      widget.onVerseVisible!(1);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _lastJumpToken = widget.verseJumpToken;
-    _scrollController.addListener(_onScroll);
     final key = '${widget.book.code}-${widget.chapter}';
+    ChapterContentView._activeStates[key] = this;
+
+    final isSaved = ChapterContentView._immediatePreviousPosition != null &&
+        ChapterContentView._immediatePreviousPosition!.key == key;
+    final initialOffset = isSaved ? ChapterContentView._immediatePreviousPosition!.offset : 0.0;
+    _currentOffset = initialOffset;
+    if (isSaved) {
+      _lastReportedVerse = ChapterContentView._immediatePreviousPosition!.visibleVerse;
+    }
+
+    _scrollController = ScrollController(initialScrollOffset: initialOffset);
+    _scrollController.addListener(_onScroll);
+
     if (ChapterContentView._versesCache.containsKey(key)) {
       _verses = ChapterContentView._versesCache[key]!;
       _isLoading = false;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _checkTargetVerse());
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _checkTargetVerse();
+        if (widget.isCurrent) {
+          _reportVisibleVerse();
+        }
+      });
     } else {
       _loadVerses();
     }
   }
 
   void _onScroll() {
+    if (_scrollController.hasClients) {
+      _currentOffset = _scrollController.offset;
+    }
     if (_isProgrammaticScroll) return;
     if (widget.onVerseVisible == null || _verses.isEmpty) return;
 
+    final visibleVerse = _determineVisibleVerse();
+    if (visibleVerse != null && visibleVerse != _lastReportedVerse) {
+      _lastReportedVerse = visibleVerse;
+      widget.onVerseVisible!(visibleVerse);
+    }
+  }
+
+  int? _determineVisibleVerse() {
     if (_scrollController.hasClients && _scrollController.offset <= 15) {
-      if (_lastReportedVerse != 1) {
-        _lastReportedVerse = 1;
-        widget.onVerseVisible!(1);
-      }
-      return;
+      return 1;
     }
 
     final listContext = context;
     final listRenderBox = listContext.findRenderObject() as RenderBox?;
-    if (listRenderBox == null || !listRenderBox.hasSize) return;
+    if (listRenderBox == null || !listRenderBox.hasSize) return _lastReportedVerse ?? 1;
 
     final listTop = listRenderBox.localToGlobal(Offset.zero).dy;
     final referenceY = listTop + 15.0;
@@ -107,9 +227,15 @@ class _ChapterContentViewState extends State<ChapterContentView> {
       }
     }
 
-    if (visibleVerse != null && visibleVerse != _lastReportedVerse) {
-      _lastReportedVerse = visibleVerse;
-      widget.onVerseVisible!(visibleVerse);
+    return visibleVerse ?? _lastReportedVerse ?? 1;
+  }
+
+  void _reportVisibleVerse() {
+    if (widget.onVerseVisible == null || _verses.isEmpty) return;
+    final verse = _determineVisibleVerse();
+    if (verse != null && verse != _lastReportedVerse) {
+      _lastReportedVerse = verse;
+      widget.onVerseVisible!(verse);
     }
   }
 
@@ -117,8 +243,11 @@ class _ChapterContentViewState extends State<ChapterContentView> {
   void didUpdateWidget(covariant ChapterContentView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.book.code != oldWidget.book.code || widget.chapter != oldWidget.chapter) {
-      _lastJumpToken = widget.verseJumpToken;
+      ChapterContentView._activeStates.remove('${oldWidget.book.code}-${oldWidget.chapter}');
       final key = '${widget.book.code}-${widget.chapter}';
+      ChapterContentView._activeStates[key] = this;
+
+      _lastJumpToken = widget.verseJumpToken;
       if (ChapterContentView._versesCache.containsKey(key)) {
         setState(() {
           _verses = ChapterContentView._versesCache[key]!;
@@ -132,10 +261,21 @@ class _ChapterContentViewState extends State<ChapterContentView> {
       _lastJumpToken = widget.verseJumpToken;
       _checkTargetVerse();
     }
+
+    if (widget.isCurrent && !oldWidget.isCurrent) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _reportVisibleVerse();
+      });
+    }
   }
 
   @override
   void dispose() {
+    final key = '${widget.book.code}-${widget.chapter}';
+    if (ChapterContentView._activeStates[key] == this) {
+      ChapterContentView._activeStates.remove(key);
+    }
     _scrollController.removeListener(_onScroll);
     _highlightTimer?.cancel();
     _scrollController.dispose();
@@ -153,6 +293,11 @@ class _ChapterContentViewState extends State<ChapterContentView> {
         _isLoading = false;
       });
       _checkTargetVerse();
+      if (widget.isCurrent) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _reportVisibleVerse();
+        });
+      }
     }
   }
 
@@ -254,7 +399,6 @@ class _ChapterContentViewState extends State<ChapterContentView> {
     final accentColor = isDark ? AppColors.darkAccent : AppColors.lightAccent;
 
     return ListView(
-      key: PageStorageKey('chapter_${widget.book.code}_${widget.chapter}'),
       controller: _scrollController,
       padding: EdgeInsets.zero,
       children: [
