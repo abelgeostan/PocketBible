@@ -172,28 +172,40 @@ class AboutScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        'Sansnet (',
+                        style: TextStyle(fontSize: 13, height: 1.6, color: textColor),
+                      ),
+                      InkWell(
+                        onTap: () => _launchExternalUrl(AppConstants.sansnetUrl),
+                        borderRadius: BorderRadius.circular(4),
+                        child: Text(
+                          'sansnet.in',
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.6,
+                            color: accentColor,
+                            decoration: TextDecoration.underline,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        ')',
+                        style: TextStyle(fontSize: 13, height: 1.6, color: textColor),
+                      ),
+                    ],
+                  ),
                   Text(
-                    'Powered by Sansnet (https://sansnet.com)\nPocketBible.in project.',
+                    'PocketBible.in project.',
                     style: TextStyle(fontSize: 13, height: 1.6, color: textColor),
                   ),
                   const SizedBox(height: 14),
                   OutlinedButton.icon(
-                    onPressed: () async {
-                      final url = Uri.parse(AppConstants.websiteUrl);
-                      try {
-                        final launched = await launchUrl(
-                          url,
-                          mode: LaunchMode.externalApplication,
-                        );
-                        if (!launched) {
-                          await launchUrl(url, mode: LaunchMode.platformDefault);
-                        }
-                      } catch (_) {
-                        try {
-                          await launchUrl(url, mode: LaunchMode.platformDefault);
-                        } catch (_) {}
-                      }
-                    },
+                    onPressed: () => _launchExternalUrl(AppConstants.websiteUrl),
                     icon: Icon(Icons.open_in_browser, size: 18, color: accentColor),
                     label: Text(
                       'Visit PocketBible.in website',
@@ -238,5 +250,22 @@ class AboutScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _launchExternalUrl(String urlString) async {
+    final url = Uri.parse(urlString);
+    try {
+      final launched = await launchUrl(
+        url,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        await launchUrl(url, mode: LaunchMode.platformDefault);
+      }
+    } catch (_) {
+      try {
+        await launchUrl(url, mode: LaunchMode.platformDefault);
+      } catch (_) {}
+    }
   }
 }
