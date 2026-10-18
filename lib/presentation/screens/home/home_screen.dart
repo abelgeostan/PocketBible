@@ -196,48 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // Compact Explore Testaments Section (replaces the long book scroll)
                   const ExploreTestamentsCard(),
-                  const SizedBox(height: 28),
-
-                  // Clean Footer
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-                    decoration: BoxDecoration(
-                      border: Border(top: BorderSide(color: lineColor)),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image.asset(
-                              'assets/icons/pocketbible-icon-touch.png',
-                              width: 28,
-                              height: 22,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'PocketBible.in',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: accentColor,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'മലയാളം സത്യവേദപുസ്തകം 1910 – സമകാലിക ലിപിയിൽ\n© 2015 The Free Bible Foundation · CC BY-SA 4.0\nPowered by Sansnet',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 11,
-                            height: 1.6,
-                            color: mutedColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),

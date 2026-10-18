@@ -290,27 +290,6 @@ class AppDrawer extends StatelessWidget {
               ],
             ),
           ),
-
-          // Footer
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            decoration: BoxDecoration(
-              border: Border(top: BorderSide(color: lineColor)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '© The Free Bible Foundation',
-                  style: TextStyle(fontSize: 11, color: mutedColor),
-                ),
-                Text(
-                  'CC BY-SA 4.0',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: mutedColor),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
