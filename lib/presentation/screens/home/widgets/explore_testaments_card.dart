@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../providers/bible_navigation_provider.dart';
+import '../../../../providers/reader_settings_provider.dart';
 import '../../../widgets/book_picker_modal.dart';
 import '../../../widgets/chapter_picker_modal.dart';
+import '../../../widgets/verse_picker_modal.dart';
 import '../../reader/reader_screen.dart';
 
 class ExploreTestamentsCard extends StatelessWidget {
@@ -113,11 +115,23 @@ class ExploreTestamentsCard extends StatelessWidget {
             1,
           );
           if (chapter != null && context.mounted) {
-            nav.navigateTo(book.code, chapter);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ReaderScreen()),
-            );
+            final autoOpenVerse = context.read<ReaderSettingsProvider>().autoOpenVerseSelector;
+            int? verse;
+            if (autoOpenVerse) {
+              verse = await VersePickerModal.show(
+                context,
+                book: book,
+                chapter: chapter,
+                currentVerse: 1,
+              );
+            }
+            if (context.mounted) {
+              nav.navigateTo(book.code, chapter, verse: verse);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ReaderScreen()),
+              );
+            }
           }
         }
       },

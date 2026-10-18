@@ -157,6 +157,24 @@ class SettingsScreen extends StatelessWidget {
                     value: settings.showVerseNumbers,
                     onChanged: (_) => settings.toggleShowVerseNumbers(),
                   ),
+
+                  Divider(height: 1, color: lineColor),
+
+                  // Auto Open Verse Selector
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      'വാക്യ സെലക്ടർ ഓട്ടോമാറ്റിക് ആയി തുറക്കുക (Auto Open Verse Selector)',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textColor),
+                    ),
+                    subtitle: Text(
+                      'Automatically open verse selector after book and chapter are selected',
+                      style: TextStyle(fontSize: 12, color: mutedColor),
+                    ),
+                    activeColor: accentColor,
+                    value: settings.autoOpenVerseSelector,
+                    onChanged: (_) => settings.toggleAutoOpenVerseSelector(),
+                  ),
                 ],
               ),
             ),

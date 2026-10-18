@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../providers/bible_navigation_provider.dart';
+import '../../../../providers/reader_settings_provider.dart';
 import '../../../widgets/book_picker_modal.dart';
 import '../../../widgets/chapter_picker_modal.dart';
 import '../../../widgets/verse_picker_modal.dart';
@@ -176,13 +177,25 @@ class StickySelectorBar extends StatelessWidget {
       );
 
       if (selectedChapter != null && context.mounted) {
-        // Go straight to verse 1 without highlighting verse 1
-        nav.selectChapter(selectedChapter);
-        if (navigateOnChapterSelect) {
-          Navigator.push(
+        final autoOpenVerse = context.read<ReaderSettingsProvider>().autoOpenVerseSelector;
+        int? selectedVerse;
+        if (autoOpenVerse) {
+          selectedVerse = await VersePickerModal.show(
             context,
-            MaterialPageRoute(builder: (_) => const ReaderScreen()),
+            book: selectedBook,
+            chapter: selectedChapter,
+            currentVerse: 1,
           );
+        }
+
+        if (context.mounted) {
+          nav.selectChapter(selectedChapter, verse: selectedVerse);
+          if (navigateOnChapterSelect) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ReaderScreen()),
+            );
+          }
         }
       }
     }
@@ -199,13 +212,24 @@ class StickySelectorBar extends StatelessWidget {
       nav.currentChapter,
     );
     if (ch != null && context.mounted) {
-      // Go straight to verse 1 without highlighting verse 1
-      nav.selectChapter(ch);
-      if (navigateOnChapterSelect) {
-        Navigator.push(
+      final autoOpenVerse = context.read<ReaderSettingsProvider>().autoOpenVerseSelector;
+      int? selectedVerse;
+      if (autoOpenVerse) {
+        selectedVerse = await VersePickerModal.show(
           context,
-          MaterialPageRoute(builder: (_) => const ReaderScreen()),
+          book: nav.currentBook!,
+          chapter: ch,
+          currentVerse: 1,
         );
+      }
+      if (context.mounted) {
+        nav.selectChapter(ch, verse: selectedVerse);
+        if (navigateOnChapterSelect) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ReaderScreen()),
+          );
+        }
       }
     }
   }

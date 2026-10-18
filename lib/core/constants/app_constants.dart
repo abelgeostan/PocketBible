@@ -17,6 +17,7 @@ class AppConstants {
   static const String keyLastRead = 'bible-last-read';
   static const String keyKeepAwake = 'bible-keep-awake';
   static const String keyShowVerseNumbers = 'bible-show-verse-numbers';
+  static const String keyAutoOpenVerseSelector = 'bible-auto-open-verse-selector';
   static const String keySearchHistory = 'bible-search-history';
 
   // Default Values

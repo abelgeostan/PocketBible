@@ -8,12 +8,14 @@ class ReaderSettingsProvider extends ChangeNotifier {
   String _readingWidth = AppConstants.defaultReadingWidth; // 'narrow', 'normal', 'wide'
   bool _keepAwake = false;
   bool _showVerseNumbers = true;
+  bool _autoOpenVerseSelector = false;
   double _lineSpacing = AppConstants.defaultLineSpacing;
 
   double get fontSize => _fontSize;
   String get readingWidth => _readingWidth;
   bool get keepAwake => _keepAwake;
   bool get showVerseNumbers => _showVerseNumbers;
+  bool get autoOpenVerseSelector => _autoOpenVerseSelector;
   double get lineSpacing => _lineSpacing;
 
   EdgeInsets get readingPadding => const EdgeInsets.symmetric(horizontal: 12, vertical: 12);
@@ -28,6 +30,7 @@ class ReaderSettingsProvider extends ChangeNotifier {
     _readingWidth = prefs.getString(AppConstants.keyReadingWidth) ?? AppConstants.defaultReadingWidth;
     _keepAwake = prefs.getBool(AppConstants.keyKeepAwake) ?? false;
     _showVerseNumbers = prefs.getBool(AppConstants.keyShowVerseNumbers) ?? true;
+    _autoOpenVerseSelector = prefs.getBool(AppConstants.keyAutoOpenVerseSelector) ?? false;
     _lineSpacing = prefs.getDouble(AppConstants.keyLineSpacing) ?? AppConstants.defaultLineSpacing;
 
     if (_keepAwake) {
@@ -90,5 +93,12 @@ class ReaderSettingsProvider extends ChangeNotifier {
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(AppConstants.keyShowVerseNumbers, _showVerseNumbers);
+  }
+
+  Future<void> toggleAutoOpenVerseSelector() async {
+    _autoOpenVerseSelector = !_autoOpenVerseSelector;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(AppConstants.keyAutoOpenVerseSelector, _autoOpenVerseSelector);
   }
 }
