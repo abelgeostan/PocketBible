@@ -16,6 +16,7 @@ class ChapterContentView extends StatefulWidget {
   final VoidCallback onNext;
   final int? targetVerse;
   final int verseJumpToken;
+  final ValueChanged<int>? onVerseVisible;
 
   const ChapterContentView({
     super.key,
@@ -27,6 +28,7 @@ class ChapterContentView extends StatefulWidget {
     required this.onNext,
     this.targetVerse,
     this.verseJumpToken = 0,
+    this.onVerseVisible,
   });
 
   static final Map<String, List<BibleVerse>> _versesCache = {};
@@ -49,10 +51,12 @@ class _ChapterContentViewState extends State<ChapterContentView> {
   int _lastJumpToken = -1;
   int? _highlightedVerse;
   Timer? _highlightTimer;
+  int? _lastReportedVerse;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     final key = '${widget.book.code}-${widget.chapter}';
     if (ChapterContentView._versesCache.containsKey(key)) {
       _verses = ChapterContentView._versesCache[key]!;
@@ -60,6 +64,39 @@ class _ChapterContentViewState extends State<ChapterContentView> {
       WidgetsBinding.instance.addPostFrameCallback((_) => _checkTargetVerse());
     } else {
       _loadVerses();
+    }
+  }
+
+  void _onScroll() {
+    if (widget.onVerseVisible == null || _verses.isEmpty) return;
+
+    if (_scrollController.hasClients && _scrollController.offset <= 10) {
+      if (_lastReportedVerse != 1) {
+        _lastReportedVerse = 1;
+        widget.onVerseVisible!(1);
+      }
+      return;
+    }
+
+    int? visibleVerse;
+    double minPositiveDy = double.infinity;
+
+    for (final v in _verses) {
+      final key = _verseKeys[v.verse];
+      final renderBox = key?.currentContext?.findRenderObject() as RenderBox?;
+      if (renderBox != null && renderBox.hasSize && renderBox.attached) {
+        final position = renderBox.localToGlobal(Offset.zero);
+        // The sticky bar & buttons take around 180-220px from top
+        if (position.dy >= 100 && position.dy < minPositiveDy) {
+          minPositiveDy = position.dy;
+          visibleVerse = v.verse;
+        }
+      }
+    }
+
+    if (visibleVerse != null && visibleVerse != _lastReportedVerse) {
+      _lastReportedVerse = visibleVerse;
+      widget.onVerseVisible!(visibleVerse);
     }
   }
 
@@ -85,6 +122,7 @@ class _ChapterContentViewState extends State<ChapterContentView> {
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
     _highlightTimer?.cancel();
     _scrollController.dispose();
     super.dispose();

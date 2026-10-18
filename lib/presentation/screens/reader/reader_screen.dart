@@ -34,7 +34,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
   final BibleRepository _bibleRepository = BibleRepository();
   List<ChapterRef> _allChapters = [];
   PageController? _pageController;
-  PageController? _headingPageController;
   int _currentPageIndex = 0;
   bool _isExternalNavigation = false;
 
@@ -51,21 +50,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
     _allChapters = _buildAllChapters(nav.books);
     _currentPageIndex = _indexOf(nav.currentBook?.code, nav.currentChapter);
     _pageController = PageController(initialPage: _currentPageIndex);
-    _headingPageController = PageController(initialPage: _currentPageIndex);
-
-    _pageController!.addListener(() {
-      if (_headingPageController != null &&
-          _headingPageController!.hasClients &&
-          _pageController!.hasClients &&
-          _pageController!.position.haveDimensions &&
-          _headingPageController!.position.haveDimensions) {
-        final contentOffset = _pageController!.offset;
-        if ((_headingPageController!.offset - contentOffset).abs() > 0.5) {
-          _headingPageController!.jumpTo(contentOffset);
-        }
-      }
-    });
-
     _preloadAdjacent(_currentPageIndex);
   }
 
@@ -145,7 +129,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
   @override
   void dispose() {
     _pageController?.dispose();
-    _headingPageController?.dispose();
     super.dispose();
   }
 
@@ -186,9 +169,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
         if ((_pageController!.page?.round() ?? -1) != targetIndex) {
           _isExternalNavigation = true;
           _pageController!.jumpToPage(targetIndex);
-          if (_headingPageController != null && _headingPageController!.hasClients) {
-            _headingPageController!.jumpToPage(targetIndex);
-          }
           _preloadAdjacent(targetIndex);
         }
       }
@@ -310,32 +290,73 @@ class _ReaderScreenState extends State<ReaderScreen> {
               const StickySelectorBar(navigateOnChapterSelect: false),
               const SizedBox(height: 12),
 
-              // 2. Chapter Title Heading (Sticks vertically, but transitions horizontally with swipe)
+              // 2. Chapter Title Heading (Swipes smoothly in exact sync with chapter page swipe)
               SizedBox(
                 height: 48,
                 child: _allChapters.isEmpty
                     ? const SizedBox.shrink()
-                    : PageView.builder(
-                        controller: _headingPageController,
-                        physics: const ClampingScrollPhysics(),
-                        itemCount: _allChapters.length,
-                        itemBuilder: (context, index) {
-                          final ref = _allChapters[index];
-                          return Container(
-                            alignment: Alignment.center,
-                            padding: const EdgeInsets.only(bottom: 12),
-                            decoration: BoxDecoration(
-                              border: Border(bottom: BorderSide(color: lineColor)),
-                            ),
-                            child: Text(
-                              '${ref.book.name} ${ref.chapter}',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w700,
-                                color: textColor,
-                              ),
-                            ),
+                    : AnimatedBuilder(
+                        animation: _pageController ?? Listenable.merge([]),
+                        builder: (context, _) {
+                          double page = _currentPageIndex.toDouble();
+                          if (_pageController != null &&
+                              _pageController!.hasClients &&
+                              _pageController!.position.haveDimensions) {
+                            page = _pageController!.page ?? _currentPageIndex.toDouble();
+                          }
+                          return LayoutBuilder(
+                            builder: (context, constraints) {
+                              final width = constraints.maxWidth;
+                              final baseIndex = page.floor();
+                              final fraction = page - baseIndex;
+
+                              Widget buildHeading(int index) {
+                                if (index < 0 || index >= _allChapters.length) {
+                                  return const SizedBox.shrink();
+                                }
+                                final ref = _allChapters[index];
+                                return Container(
+                                  alignment: Alignment.center,
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  decoration: BoxDecoration(
+                                    border: Border(bottom: BorderSide(color: lineColor)),
+                                  ),
+                                  child: Text(
+                                    '${ref.book.name} ${ref.chapter}',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.w700,
+                                      color: textColor,
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              return ClipRect(
+                                child: Stack(
+                                  children: [
+                                    // Primary / left heading
+                                    Positioned(
+                                      left: -fraction * width,
+                                      top: 0,
+                                      bottom: 0,
+                                      width: width,
+                                      child: buildHeading(baseIndex),
+                                    ),
+                                    // Next / right heading during drag
+                                    if (fraction > 0 && baseIndex + 1 < _allChapters.length)
+                                      Positioned(
+                                        left: (1.0 - fraction) * width,
+                                        top: 0,
+                                        bottom: 0,
+                                        width: width,
+                                        child: buildHeading(baseIndex + 1),
+                                      ),
+                                  ],
+                                ),
+                              );
+                            },
                           );
                         },
                       ),
@@ -369,6 +390,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
                             onNext: _goToNextChapter,
                             targetVerse: isCurrent ? nav.targetVerse : null,
                             verseJumpToken: isCurrent ? nav.verseJumpToken : 0,
+                            onVerseVisible: isCurrent
+                                ? (verse) => nav.updateCurrentVerse(verse)
+                                : null,
                           );
                         },
                       ),

@@ -156,6 +156,13 @@ class BibleNavigationProvider extends ChangeNotifier {
     } catch (_) {}
   }
 
+  void updateCurrentVerse(int verse) {
+    if (_targetVerse == verse) return;
+    _targetVerse = verse;
+    _saveCurrentPosition();
+    notifyListeners();
+  }
+
   void clearTargetVerse() {
     _targetVerse = null;
   }
