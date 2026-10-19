@@ -80,13 +80,20 @@ class ContinueReadingCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 6),
-                      Text(
-                        AppConstants.lastReadTitle.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 11,
-                          letterSpacing: 0.8,
-                          color: mutedColor,
-                          fontWeight: FontWeight.w600,
+                      Expanded(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            AppConstants.lastReadTitle.toUpperCase(),
+                            maxLines: 1,
+                            style: TextStyle(
+                              fontSize: 11,
+                              letterSpacing: 0.8,
+                              color: mutedColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ),
                     ],
