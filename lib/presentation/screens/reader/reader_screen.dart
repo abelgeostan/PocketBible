@@ -422,7 +422,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
                                 final ref = _allChapters[index];
                                 return Container(
                                   alignment: Alignment.center,
-                                  padding: const EdgeInsets.only(bottom: 12),
                                   decoration: BoxDecoration(
                                     border: Border(bottom: BorderSide(color: lineColor)),
                                   ),
@@ -442,14 +441,18 @@ class _ReaderScreenState extends State<ReaderScreen> {
                                             color: textColor,
                                           ),
                                         ),
-                                        const SizedBox(width: 4),
-                                        IconButton(
-                                          icon: const Icon(Icons.copy_rounded, size: 16),
-                                          color: mutedColor,
-                                          tooltip: 'Copy chapter',
-                                          padding: EdgeInsets.zero,
-                                          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                                          onPressed: () => _copyFullChapter(ref),
+                                        const SizedBox(width: 2),
+                                        InkWell(
+                                          onTap: () => _copyFullChapter(ref),
+                                          borderRadius: BorderRadius.circular(4),
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(left: 2, right: 4, top: 1, bottom: 6),
+                                            child: Icon(
+                                              Icons.copy_rounded,
+                                              size: 14,
+                                              color: mutedColor,
+                                            ),
+                                          ),
                                         ),
                                       ],
                                     ),
