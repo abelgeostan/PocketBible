@@ -107,7 +107,7 @@ class VerseItemWidget extends StatelessWidget {
                     WidgetSpan(
                       alignment: PlaceholderAlignment.top,
                       child: Transform.translate(
-                        offset: const Offset(0, -3.5),
+                        offset: Offset(0, -3.5 - 1.25 * (settings.fontSize - 14.0)),
                         child: Padding(
                           padding: const EdgeInsets.only(right: 6),
                           child: Text(
