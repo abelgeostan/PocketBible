@@ -441,7 +441,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                             onPrevious: _goToPreviousChapter,
                             onNext: _goToNextChapter,
                             targetVerse: isCurrent ? nav.targetVerse : null,
-                            verseJumpToken: isCurrent ? nav.verseJumpToken : 0,
+                            verseJumpToken: nav.verseJumpToken,
                             onVerseVisible: isCurrent
                                 ? (verse) => nav.updateCurrentVerse(verse)
                                 : null,

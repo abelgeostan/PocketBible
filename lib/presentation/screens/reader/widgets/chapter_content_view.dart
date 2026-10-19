@@ -130,6 +130,11 @@ class _ChapterContentViewState extends State<ChapterContentView> {
   void restorePosition(double offset, int verse) {
     _currentOffset = offset;
     _lastReportedVerse = verse;
+    _lastJumpToken = widget.verseJumpToken;
+    _highlightTimer?.cancel();
+    if (_highlightedVerse != null) {
+      setState(() => _highlightedVerse = null);
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _scrollController.hasClients) {
         if ((_scrollController.offset - offset).abs() > 1.0) {
@@ -174,13 +179,15 @@ class _ChapterContentViewState extends State<ChapterContentView> {
       _isLoading = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        _checkTargetVerse();
+        if (!isSaved && widget.targetVerse != null && widget.verseJumpToken > 0) {
+          _checkTargetVerse();
+        }
         if (widget.isCurrent) {
           _reportVisibleVerse();
         }
       });
     } else {
-      _loadVerses();
+      _loadVerses(isSaved: isSaved);
     }
   }
 
@@ -259,7 +266,7 @@ class _ChapterContentViewState extends State<ChapterContentView> {
       } else {
         _loadVerses();
       }
-    } else if (widget.verseJumpToken != _lastJumpToken && widget.targetVerse != null) {
+    } else if (widget.isCurrent && widget.verseJumpToken != _lastJumpToken && widget.targetVerse != null) {
       _lastJumpToken = widget.verseJumpToken;
       _checkTargetVerse();
     }
@@ -284,7 +291,7 @@ class _ChapterContentViewState extends State<ChapterContentView> {
     super.dispose();
   }
 
-  Future<void> _loadVerses() async {
+  Future<void> _loadVerses({bool isSaved = false}) async {
     setState(() => _isLoading = true);
     final verses = await _bibleRepository.getChapterVerses(widget.book.code, widget.chapter);
     ChapterContentView._versesCache['${widget.book.code}-${widget.chapter}'] = verses;
@@ -294,7 +301,9 @@ class _ChapterContentViewState extends State<ChapterContentView> {
         _verses = verses;
         _isLoading = false;
       });
-      _checkTargetVerse();
+      if (!isSaved && widget.targetVerse != null && widget.verseJumpToken > 0) {
+        _checkTargetVerse();
+      }
       if (widget.isCurrent) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) _reportVisibleVerse();
