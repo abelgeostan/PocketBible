@@ -99,6 +99,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
     }
 
     final oldIndex = _currentPageIndex;
+    int restoredVerse = 1;
     if (oldIndex != index &&
         oldIndex >= 0 &&
         oldIndex < _allChapters.length &&
@@ -107,7 +108,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
       final oldRef = _allChapters[oldIndex];
       final newRef = _allChapters[index];
       final isAdjacent = (index - oldIndex).abs() == 1;
-      ChapterContentView.onChapterChanged(
+      restoredVerse = ChapterContentView.onChapterChanged(
         oldBookCode: oldRef.book.code,
         oldChapter: oldRef.chapter,
         newBookCode: newRef.book.code,
@@ -123,7 +124,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
       final ref = _allChapters[index];
       final nav = context.read<BibleNavigationProvider>();
       if (ref.book.code != nav.currentBook?.code || ref.chapter != nav.currentChapter) {
-        nav.navigateTo(ref.book.code, ref.chapter);
+        nav.navigateTo(ref.book.code, ref.chapter, verse: restoredVerse, incrementJumpToken: false);
+      } else if (nav.targetVerse != restoredVerse) {
+        nav.updateCurrentVerse(restoredVerse);
       }
     }
   }

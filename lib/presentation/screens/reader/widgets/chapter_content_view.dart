@@ -53,7 +53,7 @@ class ChapterContentView extends StatefulWidget {
   static List<BibleVerse>? getCached(String key) => _versesCache[key];
   static void setCached(String key, List<BibleVerse> verses) => _versesCache[key] = verses;
 
-  static void onChapterChanged({
+  static int onChapterChanged({
     required String oldBookCode,
     required int oldChapter,
     required String newBookCode,
@@ -68,14 +68,16 @@ class ChapterContentView extends StatefulWidget {
       for (final state in _activeStates.values) {
         state.resetToTop();
       }
-      return;
+      return 1;
     }
 
     final isReturningToSaved = _immediatePreviousPosition != null &&
         _immediatePreviousPosition!.key == newKey;
 
+    int restoredVerse = 1;
     if (isReturningToSaved) {
       final saved = _immediatePreviousPosition!;
+      restoredVerse = saved.visibleVerse;
       final newState = _activeStates[newKey];
       if (newState != null && newState.mounted) {
         newState.restorePosition(saved.offset, saved.visibleVerse);
@@ -100,6 +102,8 @@ class ChapterContentView extends StatefulWidget {
       offset: oldOffset,
       visibleVerse: oldVerse,
     );
+
+    return restoredVerse;
   }
 
   @override
@@ -231,7 +235,7 @@ class _ChapterContentViewState extends State<ChapterContentView> {
   void _reportVisibleVerse() {
     if (widget.onVerseVisible == null || _verses.isEmpty) return;
     final verse = _determineVisibleVerse();
-    if (verse != null && verse != _lastReportedVerse) {
+    if (verse != null && (verse != _lastReportedVerse || widget.targetVerse != verse)) {
       _lastReportedVerse = verse;
       widget.onVerseVisible!(verse);
     }

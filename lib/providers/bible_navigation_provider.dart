@@ -141,14 +141,14 @@ class BibleNavigationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void navigateTo(String bookCode, int chapter, {int? verse}) {
+  void navigateTo(String bookCode, int chapter, {int? verse, bool incrementJumpToken = true}) {
     try {
       final book = _books.firstWhere((b) => b.code == bookCode);
       _currentBook = book;
       _selectedTestament = book.testament;
       _currentChapter = chapter.clamp(1, book.totalChapters);
       _targetVerse = verse;
-      if (verse != null) {
+      if (verse != null && incrementJumpToken) {
         _verseJumpToken++;
       }
       _saveCurrentPosition();
