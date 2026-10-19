@@ -227,6 +227,18 @@ class AboutScreen extends StatelessWidget {
             ),
           ),
 
+          const SizedBox(height: 16),
+
+          // Privacy Policy Card
+          Card(
+            child: ListTile(
+              leading: Icon(Icons.privacy_tip_outlined, color: accentColor),
+              title: const Text('Privacy Policy (സ്വകാര്യതാ നയം)'),
+              trailing: const Icon(Icons.open_in_new, size: 18),
+              onTap: () => _launchExternalUrl(AppConstants.privacyPolicyUrl),
+            ),
+          ),
+
           const SizedBox(height: 30),
         ],
       ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../providers/reader_settings_provider.dart';
@@ -183,36 +182,20 @@ class SettingsScreen extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          // Section: About & Privacy
+          // Section: About
           _buildSectionTitle('വിവരങ്ങൾ (About)', accentColor),
           Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: Icon(Icons.info_outline, color: accentColor),
-                  title: const Text('PocketBible-നെക്കുറിച്ച് (About)'),
-                  subtitle: const Text('സത്യവേദപുസ്തകം 1910, FBF 2015, Sansnet'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const AboutScreen()),
-                    );
-                  },
-                ),
-                Divider(height: 1, color: lineColor),
-                ListTile(
-                  leading: Icon(Icons.privacy_tip_outlined, color: accentColor),
-                  title: const Text('Privacy Policy (സ്വകാര്യതാ നയം)'),
-                  trailing: const Icon(Icons.open_in_new, size: 18),
-                  onTap: () async {
-                    final url = Uri.parse(AppConstants.privacyPolicyUrl);
-                    if (await canLaunchUrl(url)) {
-                      await launchUrl(url, mode: LaunchMode.externalApplication);
-                    }
-                  },
-                ),
-              ],
+            child: ListTile(
+              leading: Icon(Icons.info_outline, color: accentColor),
+              title: const Text('PocketBible-നെക്കുറിച്ച് (About)'),
+              subtitle: const Text('സത്യവേദപുസ്തകം 1910, FBF 2015, Sansnet'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AboutScreen()),
+                );
+              },
             ),
           ),
 
