@@ -181,8 +181,7 @@ class _ChapterContentViewState extends State<ChapterContentView> {
         if (!mounted) return;
         if (!isSaved && widget.targetVerse != null && widget.verseJumpToken > 0) {
           _checkTargetVerse();
-        }
-        if (widget.isCurrent) {
+        } else if (widget.isCurrent) {
           _reportVisibleVerse();
         }
       });
@@ -303,8 +302,7 @@ class _ChapterContentViewState extends State<ChapterContentView> {
       });
       if (!isSaved && widget.targetVerse != null && widget.verseJumpToken > 0) {
         _checkTargetVerse();
-      }
-      if (widget.isCurrent) {
+      } else if (widget.isCurrent) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) _reportVisibleVerse();
         });
@@ -315,6 +313,7 @@ class _ChapterContentViewState extends State<ChapterContentView> {
   void _checkTargetVerse() {
     if (widget.targetVerse != null && widget.targetVerse! > 1) {
       final target = widget.targetVerse!;
+      _lastReportedVerse = target;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToVerse(target);
         _startHighlightTimer(target);
@@ -364,6 +363,7 @@ class _ChapterContentViewState extends State<ChapterContentView> {
       Future.delayed(const Duration(milliseconds: 100), () {
         if (mounted) {
           _isProgrammaticScroll = false;
+          _reportVisibleVerse();
         }
       });
     }
