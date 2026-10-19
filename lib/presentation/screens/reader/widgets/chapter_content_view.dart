@@ -126,27 +126,25 @@ class _ChapterContentViewState extends State<ChapterContentView> {
   void restorePosition(double offset, int verse) {
     _currentOffset = offset;
     _lastReportedVerse = verse;
-    if (_scrollController.hasClients) {
-      if ((_scrollController.offset - offset).abs() > 1.0) {
-        _scrollController.jumpTo(offset);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _scrollController.hasClients) {
+        if ((_scrollController.offset - offset).abs() > 1.0) {
+          _scrollController.jumpTo(offset);
+        }
       }
-    }
-    if (widget.isCurrent && widget.onVerseVisible != null) {
-      widget.onVerseVisible!(verse);
-    }
+    });
   }
 
   void resetToTop() {
     _currentOffset = 0.0;
     _lastReportedVerse = 1;
-    if (_scrollController.hasClients) {
-      if (_scrollController.offset > 0.0) {
-        _scrollController.jumpTo(0.0);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _scrollController.hasClients) {
+        if (_scrollController.offset > 0.0) {
+          _scrollController.jumpTo(0.0);
+        }
       }
-    }
-    if (widget.isCurrent && widget.onVerseVisible != null) {
-      widget.onVerseVisible!(1);
-    }
+    });
   }
 
   @override

@@ -184,28 +184,37 @@ class _ReaderScreenState extends State<ReaderScreen> {
     // Sync PageController when provider is changed externally (e.g. from StickySelectorBar or Verse selector)
     final targetIndex = _indexOf(nav.currentBook?.code, nav.currentChapter);
     if (targetIndex != _currentPageIndex) {
-      if (_currentPageIndex >= 0 &&
-          _currentPageIndex < _allChapters.length &&
-          targetIndex >= 0 &&
-          targetIndex < _allChapters.length) {
-        final oldRef = _allChapters[_currentPageIndex];
-        final newRef = _allChapters[targetIndex];
-        ChapterContentView.onChapterChanged(
-          oldBookCode: oldRef.book.code,
-          oldChapter: oldRef.chapter,
-          newBookCode: newRef.book.code,
-          newChapter: newRef.chapter,
-          isAdjacentSwipe: false,
-        );
-      }
+      final oldIndex = _currentPageIndex;
       _currentPageIndex = targetIndex;
-      if (_pageController != null && _pageController!.hasClients) {
-        if ((_pageController!.page?.round() ?? -1) != targetIndex) {
-          _isExternalNavigation = true;
-          _pageController!.jumpToPage(targetIndex);
-          _preloadAdjacent(targetIndex);
+      _isExternalNavigation = true;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (oldIndex >= 0 &&
+            oldIndex < _allChapters.length &&
+            targetIndex >= 0 &&
+            targetIndex < _allChapters.length) {
+          final oldRef = _allChapters[oldIndex];
+          final newRef = _allChapters[targetIndex];
+          ChapterContentView.onChapterChanged(
+            oldBookCode: oldRef.book.code,
+            oldChapter: oldRef.chapter,
+            newBookCode: newRef.book.code,
+            newChapter: newRef.chapter,
+            isAdjacentSwipe: false,
+          );
         }
-      }
+        if (_pageController != null && _pageController!.hasClients) {
+          if ((_pageController!.page?.round() ?? -1) != targetIndex) {
+            _pageController!.jumpToPage(targetIndex);
+            _preloadAdjacent(targetIndex);
+          } else {
+            _isExternalNavigation = false;
+          }
+        } else {
+          _isExternalNavigation = false;
+        }
+      });
     }
 
     final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
@@ -333,7 +342,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
                         animation: _pageController ?? Listenable.merge([]),
                         builder: (context, _) {
                           double page = _currentPageIndex.toDouble();
-                          if (_pageController != null &&
+                          if (!_isExternalNavigation &&
+                              _pageController != null &&
                               _pageController!.hasClients &&
                               _pageController!.position.haveDimensions) {
                             page = _pageController!.page ?? _currentPageIndex.toDouble();
