@@ -59,6 +59,58 @@ class BibleDatabase {
         debugPrint('Error copying assets database: $e');
         // Fallback: create empty DB if asset copy fails
       }
+    } else {
+      // Check if existing database needs upgrade to version 3 (complete scripture text)
+      try {
+        final existingDb = await openDatabase(path);
+        final pragmaRes = await existingDb.rawQuery('PRAGMA user_version;');
+        final currentVersion = pragmaRes.isNotEmpty ? (pragmaRes.first.values.first as int? ?? 0) : 0;
+
+        if (currentVersion < 3) {
+          debugPrint('Upgrading database from version $currentVersion to 3 (restoring full scripture verses)...');
+          // Backup user tables
+          final bookmarks = await existingDb.query('bookmarks');
+          final highlights = await existingDb.query('highlights');
+          final notes = await existingDb.query('notes');
+          final history = await existingDb.query('reading_history');
+          await existingDb.close();
+
+          // Copy fresh complete database from assets
+          ByteData data = await rootBundle.load('assets/database/pocketbible.db');
+          List<int> bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+          final tmpPath = '$path.tmp';
+          final tmpFile = File(tmpPath);
+          await tmpFile.writeAsBytes(bytes, flush: true);
+          if (await file.exists()) {
+            await file.delete();
+          }
+          await tmpFile.rename(path);
+
+          // Restore user data into new database
+          final upgradedDb = await openDatabase(path);
+          final batch = upgradedDb.batch();
+          for (final b in bookmarks) {
+            batch.insert('bookmarks', b, conflictAlgorithm: ConflictAlgorithm.replace);
+          }
+          for (final h in highlights) {
+            batch.insert('highlights', h, conflictAlgorithm: ConflictAlgorithm.replace);
+          }
+          for (final n in notes) {
+            batch.insert('notes', n, conflictAlgorithm: ConflictAlgorithm.replace);
+          }
+          for (final r in history) {
+            batch.insert('reading_history', r, conflictAlgorithm: ConflictAlgorithm.replace);
+          }
+          batch.execute('PRAGMA user_version = 3;');
+          await batch.commit(noResult: true);
+          await upgradedDb.close();
+          debugPrint('Database successfully upgraded to version 3 with user data preserved.');
+        } else {
+          await existingDb.close();
+        }
+      } catch (e) {
+        debugPrint('Error upgrading existing database to version 3: $e');
+      }
     }
 
     final db = await openDatabase(
