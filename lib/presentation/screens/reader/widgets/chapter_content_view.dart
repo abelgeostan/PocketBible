@@ -30,6 +30,7 @@ class ChapterContentView extends StatefulWidget {
   final int? targetVerse;
   final int verseJumpToken;
   final ValueChanged<int>? onVerseVisible;
+  final ScrollPhysics? physics;
 
   const ChapterContentView({
     super.key,
@@ -43,6 +44,7 @@ class ChapterContentView extends StatefulWidget {
     this.targetVerse,
     this.verseJumpToken = 0,
     this.onVerseVisible,
+    this.physics,
   });
 
   static final Map<String, List<BibleVerse>> _versesCache = {};
@@ -411,6 +413,7 @@ class _ChapterContentViewState extends State<ChapterContentView> {
 
     return ListView(
       controller: _scrollController,
+      physics: widget.physics,
       padding: EdgeInsets.zero,
       children: [
             // Chapter Content Widget (Bible Text Card - moves with swipe)

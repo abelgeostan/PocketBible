@@ -41,9 +41,16 @@ class ReaderSettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setFontSize(double size) async {
+  Future<void> setFontSize(double size, {bool persist = true}) async {
     _fontSize = size.clamp(AppConstants.minFontSize, AppConstants.maxFontSize);
     notifyListeners();
+    if (persist) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble(AppConstants.keyFontSize, _fontSize);
+    }
+  }
+
+  Future<void> saveFontSize() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble(AppConstants.keyFontSize, _fontSize);
   }

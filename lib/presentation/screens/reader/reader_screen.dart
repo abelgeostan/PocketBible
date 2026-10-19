@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../data/models/bible_book.dart';
 import '../../../data/models/bible_verse.dart';
 import '../../../data/repositories/bible_repository.dart';
@@ -15,7 +16,6 @@ import '../home/home_screen.dart';
 import '../home/widgets/sticky_selector_bar.dart';
 import '../search/search_screen.dart';
 import 'widgets/chapter_content_view.dart';
-import 'widgets/reading_tools_bar.dart';
 
 class ChapterRef {
   final BibleBook book;
@@ -36,6 +36,11 @@ class _ReaderScreenState extends State<ReaderScreen> {
   PageController? _pageController;
   int _currentPageIndex = 0;
   bool _isExternalNavigation = false;
+
+  final Map<int, Offset> _activePointers = {};
+  double? _basePinchDistance;
+  double? _basePinchFontSize;
+  bool _isPinching = false;
 
   @override
   void initState() {
@@ -155,19 +160,72 @@ class _ReaderScreenState extends State<ReaderScreen> {
     super.dispose();
   }
 
-  Future<void> _copyFullChapter() async {
-    final nav = context.read<BibleNavigationProvider>();
-    if (nav.currentBook == null) return;
+  void _onPinchPointerDown(PointerDownEvent event) {
+    _activePointers[event.pointer] = event.position;
+    if (_activePointers.length == 2) {
+      final p = _activePointers.values.toList();
+      _basePinchDistance = (p[0] - p[1]).distance;
+      final settings = context.read<ReaderSettingsProvider>();
+      _basePinchFontSize = settings.fontSize;
+      if (!_isPinching) {
+        setState(() => _isPinching = true);
+      }
+    }
+  }
 
-    final key = '${nav.currentBook!.code}-${nav.currentChapter}';
+  void _onPinchPointerMove(PointerMoveEvent event) {
+    if (!_activePointers.containsKey(event.pointer)) return;
+    _activePointers[event.pointer] = event.position;
+
+    if (_activePointers.length >= 2 &&
+        _basePinchDistance != null &&
+        _basePinchDistance! > 20 &&
+        _basePinchFontSize != null) {
+      final p = _activePointers.values.toList();
+      final currentDistance = (p[0] - p[1]).distance;
+      final scale = currentDistance / _basePinchDistance!;
+      final targetSize = (_basePinchFontSize! * scale).clamp(
+        AppConstants.minFontSize,
+        AppConstants.maxFontSize,
+      );
+
+      final settings = context.read<ReaderSettingsProvider>();
+      if ((targetSize - settings.fontSize).abs() >= 0.2) {
+        settings.setFontSize(targetSize, persist: false);
+      }
+    }
+  }
+
+  void _onPinchPointerUp(PointerEvent event) {
+    _activePointers.remove(event.pointer);
+    if (_activePointers.length < 2) {
+      if (_isPinching) {
+        final settings = context.read<ReaderSettingsProvider>();
+        settings.saveFontSize();
+        setState(() {
+          _isPinching = false;
+          _basePinchDistance = null;
+          _basePinchFontSize = null;
+        });
+      }
+    }
+  }
+
+  Future<void> _copyFullChapter([ChapterRef? chapterRef]) async {
+    final nav = context.read<BibleNavigationProvider>();
+    final book = chapterRef?.book ?? nav.currentBook;
+    final chapter = chapterRef?.chapter ?? nav.currentChapter;
+    if (book == null) return;
+
+    final key = '${book.code}-$chapter';
     List<BibleVerse>? verses = ChapterContentView.getCached(key);
     if (verses == null || verses.isEmpty) {
-      verses = await _bibleRepository.getChapterVerses(nav.currentBook!.code, nav.currentChapter);
+      verses = await _bibleRepository.getChapterVerses(book.code, chapter);
     }
     if (verses.isEmpty || !mounted) return;
 
     final versesText = verses.map((v) => '${v.verse} ${v.text}').join('\n');
-    final fullText = '${nav.currentBook!.name} ${nav.currentChapter}\n\n$versesText';
+    final fullText = '${book.name} $chapter\n\n$versesText';
 
     Clipboard.setData(ClipboardData(text: fullText));
     ToastNotification.show(context, 'Chapter copied');
@@ -370,15 +428,30 @@ class _ReaderScreenState extends State<ReaderScreen> {
                                   ),
                                   child: FittedBox(
                                     fit: BoxFit.scaleDown,
-                                    child: Text(
-                                      '${ref.book.name} ${ref.chapter}',
-                                      textAlign: TextAlign.center,
-                                      maxLines: 1,
-                                      style: TextStyle(
-                                        fontSize: 26,
-                                        fontWeight: FontWeight.w700,
-                                        color: textColor,
-                                      ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '${ref.book.name} ${ref.chapter}',
+                                          textAlign: TextAlign.center,
+                                          maxLines: 1,
+                                          style: TextStyle(
+                                            fontSize: 26,
+                                            fontWeight: FontWeight.w700,
+                                            color: textColor,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        IconButton(
+                                          icon: const Icon(Icons.copy_rounded, size: 16),
+                                          color: mutedColor,
+                                          tooltip: 'Copy chapter',
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                                          onPressed: () => _copyFullChapter(ref),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 );
@@ -414,39 +487,45 @@ class _ReaderScreenState extends State<ReaderScreen> {
               ),
               const SizedBox(height: 12),
 
-              // 3. Control Buttons / Reading Tools Bar (Sticky in middle, does not swipe)
-              ReadingToolsBar(
-                onCopyChapter: _copyFullChapter,
-              ),
-              const SizedBox(height: 16),
-
-              // 4. Chapter Content Widget (Verses card slides horizontally with swipe)
+              // 3. Chapter Content Widget (Verses card slides horizontally with swipe)
               Expanded(
                 child: _allChapters.isEmpty
                     ? const Center(child: CircularProgressIndicator())
-                    : PageView.builder(
-                        controller: _pageController,
-                        itemCount: _allChapters.length,
-                        onPageChanged: _onPageChanged,
-                        itemBuilder: (context, index) {
-                          final ref = _allChapters[index];
-                          final isCurrent = index == _currentPageIndex;
-                          return ChapterContentView(
-                            key: ValueKey('page_${ref.book.code}_${ref.chapter}'),
-                            book: ref.book,
-                            chapter: ref.chapter,
-                            isCurrent: isCurrent,
-                            hasPrevious: index > 0,
-                            hasNext: index < _allChapters.length - 1,
-                            onPrevious: _goToPreviousChapter,
-                            onNext: _goToNextChapter,
-                            targetVerse: isCurrent ? nav.targetVerse : null,
-                            verseJumpToken: nav.verseJumpToken,
-                            onVerseVisible: isCurrent
-                                ? (verse) => nav.updateCurrentVerse(verse)
-                                : null,
-                          );
-                        },
+                    : Listener(
+                        onPointerDown: _onPinchPointerDown,
+                        onPointerMove: _onPinchPointerMove,
+                        onPointerUp: _onPinchPointerUp,
+                        onPointerCancel: _onPinchPointerUp,
+                        child: PageView.builder(
+                          controller: _pageController,
+                          physics: _isPinching
+                              ? const NeverScrollableScrollPhysics()
+                              : const PageScrollPhysics(),
+                          itemCount: _allChapters.length,
+                          onPageChanged: _onPageChanged,
+                          itemBuilder: (context, index) {
+                            final ref = _allChapters[index];
+                            final isCurrent = index == _currentPageIndex;
+                            return ChapterContentView(
+                              key: ValueKey('page_${ref.book.code}_${ref.chapter}'),
+                              book: ref.book,
+                              chapter: ref.chapter,
+                              isCurrent: isCurrent,
+                              physics: _isPinching
+                                  ? const NeverScrollableScrollPhysics()
+                                  : null,
+                              hasPrevious: index > 0,
+                              hasNext: index < _allChapters.length - 1,
+                              onPrevious: _goToPreviousChapter,
+                              onNext: _goToNextChapter,
+                              targetVerse: isCurrent ? nav.targetVerse : null,
+                              verseJumpToken: nav.verseJumpToken,
+                              onVerseVisible: isCurrent
+                                  ? (verse) => nav.updateCurrentVerse(verse)
+                                  : null,
+                            );
+                          },
+                        ),
                       ),
               ),
             ],
