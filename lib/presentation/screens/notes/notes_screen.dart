@@ -29,21 +29,26 @@ class NotesScreen extends StatelessWidget {
           ? const Center(child: CircularProgressIndicator())
           : notes.notes.isEmpty
               ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.note_alt_outlined, size: 54, color: mutedColor.withOpacity(0.5)),
-                      const SizedBox(height: 12),
-                      Text(
-                        'കുറിപ്പുകൾ ഇല്ല.',
-                        style: TextStyle(fontSize: 16, color: mutedColor),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'വായനയിൽ വചനത്തിന്മേൽ ടാപ്പ് ചെയ്ത് കുറിപ്പുകൾ രേഖപ്പെടുത്താം.',
-                        style: TextStyle(fontSize: 13, color: mutedColor),
-                      ),
-                    ],
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.note_alt_outlined, size: 54, color: mutedColor.withValues(alpha: 0.5)),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No notes yet.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 16, color: mutedColor),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'വായനയിൽ വചനത്തിന്മേൽ ടാപ്പ് ചെയ്ത് കുറിപ്പുകൾ രേഖപ്പെടുത്താം.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 13, color: mutedColor),
+                        ),
+                      ],
+                    ),
                   ),
                 )
               : ListView.separated(
