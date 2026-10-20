@@ -298,40 +298,6 @@ class SettingsScreen extends StatelessWidget {
                     },
                   ),
                 ],
-
-                Divider(height: 1, color: lineColor),
-                InkWell(
-                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
-                  onTap: () async {
-                    await notifProvider.sendTestNotification(isMorning: true);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('ടെസ്റ്റ് നോട്ടിഫിക്കേഷൻ അയച്ചു (Test notification sent)'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.notifications_active_outlined, size: 16, color: accentColor),
-                        const SizedBox(width: 8),
-                        Text(
-                          'ടെസ്റ്റ് നോട്ടിഫിക്കേഷൻ അയക്കുക (Send Test Notification)',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: accentColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
