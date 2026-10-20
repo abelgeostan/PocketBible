@@ -4,7 +4,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../providers/reader_settings_provider.dart';
 import '../../../providers/theme_provider.dart';
-import '../about/about_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -179,25 +178,6 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
 
-
-          const SizedBox(height: 24),
-
-          // Section: About
-          _buildSectionTitle('വിവരങ്ങൾ (About)', accentColor),
-          Card(
-            child: ListTile(
-              leading: Icon(Icons.info_outline, color: accentColor),
-              title: const Text('PocketBible-നെക്കുറിച്ച് (About)'),
-              subtitle: const Text('സത്യവേദപുസ്തകം 1910, FBF 2015, Sansnet'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AboutScreen()),
-                );
-              },
-            ),
-          ),
 
           const SizedBox(height: 40),
         ],
