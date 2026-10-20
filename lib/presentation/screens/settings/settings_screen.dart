@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../providers/notification_provider.dart';
 import '../../../providers/reader_settings_provider.dart';
 import '../../../providers/theme_provider.dart';
 
@@ -12,6 +13,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
     final settings = context.watch<ReaderSettingsProvider>();
+    final notifProvider = context.watch<NotificationProvider>();
 
     final isDark = themeProvider.isDarkMode;
     final surface2Color = isDark ? AppColors.darkSurface2 : AppColors.lightSurface2;
@@ -178,11 +180,173 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
 
+          const SizedBox(height: 24),
+
+          // Section: Notifications
+          _buildSectionTitle('അറിയിപ്പുകൾ (Notifications)', accentColor),
+          Card(
+            child: Column(
+              children: [
+                // Morning Notification
+                SwitchListTile(
+                  title: Text(
+                    'പ്രഭാത വചനം (Morning Daily Verse)',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'ദിവസേന രാവിലെ ഇന്നത്തെ വചനം അറിയിപ്പായി ലഭിക്കുക',
+                    style: TextStyle(fontSize: 12, color: mutedColor),
+                  ),
+                  activeColor: accentColor,
+                  value: notifProvider.morningEnabled,
+                  onChanged: (val) => notifProvider.setMorningEnabled(val),
+                ),
+
+                if (notifProvider.morningEnabled) ...[
+                  Divider(height: 1, color: lineColor),
+                  ListTile(
+                    leading: Icon(Icons.wb_sunny_outlined, color: accentColor, size: 20),
+                    title: Text(
+                      'അറിയിപ്പ് സമയം (Notification Time)',
+                      style: TextStyle(fontSize: 14, color: textColor),
+                    ),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: surface2Color,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: lineColor),
+                      ),
+                      child: Text(
+                        _formatTime(notifProvider.morningTime),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: accentColor,
+                        ),
+                      ),
+                    ),
+                    onTap: () async {
+                      final picked = await showTimePicker(
+                        context: context,
+                        initialTime: notifProvider.morningTime,
+                      );
+                      if (picked != null) {
+                        notifProvider.setMorningTime(picked);
+                      }
+                    },
+                  ),
+                ],
+
+                Divider(height: 1, color: lineColor),
+
+                // Evening Notification
+                SwitchListTile(
+                  title: Text(
+                    'സായാഹ്ന സന്ദേശം (Evening Daily Bread)',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'ദിവസേന വൈകുന്നേരം ദൈവവചനം വായിക്കാൻ ഓർമ്മപ്പെടുത്തൽ',
+                    style: TextStyle(fontSize: 12, color: mutedColor),
+                  ),
+                  activeColor: accentColor,
+                  value: notifProvider.eveningEnabled,
+                  onChanged: (val) => notifProvider.setEveningEnabled(val),
+                ),
+
+                if (notifProvider.eveningEnabled) ...[
+                  Divider(height: 1, color: lineColor),
+                  ListTile(
+                    leading: Icon(Icons.nights_stay_outlined, color: accentColor, size: 20),
+                    title: Text(
+                      'അറിയിപ്പ് സമയം (Notification Time)',
+                      style: TextStyle(fontSize: 14, color: textColor),
+                    ),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: surface2Color,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: lineColor),
+                      ),
+                      child: Text(
+                        _formatTime(notifProvider.eveningTime),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: accentColor,
+                        ),
+                      ),
+                    ),
+                    onTap: () async {
+                      final picked = await showTimePicker(
+                        context: context,
+                        initialTime: notifProvider.eveningTime,
+                      );
+                      if (picked != null) {
+                        notifProvider.setEveningTime(picked);
+                      }
+                    },
+                  ),
+                ],
+
+                Divider(height: 1, color: lineColor),
+                InkWell(
+                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                  onTap: () async {
+                    await notifProvider.sendTestNotification(isMorning: true);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('ടെസ്റ്റ് നോട്ടിഫിക്കേഷൻ അയച്ചു (Test notification sent)'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.notifications_active_outlined, size: 16, color: accentColor),
+                        const SizedBox(width: 8),
+                        Text(
+                          'ടെസ്റ്റ് നോട്ടിഫിക്കേഷൻ അയക്കുക (Send Test Notification)',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: accentColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
 
           const SizedBox(height: 40),
         ],
       ),
     );
+  }
+
+  String _formatTime(TimeOfDay time) {
+    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+    return '$hour:$minute $period';
   }
 
   Widget _buildSectionTitle(String title, Color color) {

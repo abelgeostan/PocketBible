@@ -19,6 +19,12 @@ class AppConstants {
   static const String keyShowVerseNumbers = 'bible-show-verse-numbers';
   static const String keyAutoOpenVerseSelector = 'bible-auto-open-verse-selector';
   static const String keySearchHistory = 'bible-search-history';
+  static const String keyMorningNotificationEnabled = 'bible-morning-notif-enabled';
+  static const String keyMorningNotificationHour = 'bible-morning-notif-hour';
+  static const String keyMorningNotificationMinute = 'bible-morning-notif-minute';
+  static const String keyEveningNotificationEnabled = 'bible-evening-notif-enabled';
+  static const String keyEveningNotificationHour = 'bible-evening-notif-hour';
+  static const String keyEveningNotificationMinute = 'bible-evening-notif-minute';
 
   // Default Values
   static const double defaultFontSize = 18.0;

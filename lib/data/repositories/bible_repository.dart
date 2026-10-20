@@ -61,8 +61,8 @@ class BibleRepository {
     );
   }
 
-  /// Returns today's verse following the exact day-of-year formula from PocketBible.in
-  Future<DailyVerse?> getTodayVerse() async {
+  /// Returns the daily verse for a given date following the day-of-year formula from PocketBible.in
+  Future<DailyVerse?> getVerseForDate(DateTime date) async {
     if (_cachedDailyVerses == null) {
       try {
         final jsonStr = await rootBundle.loadString('assets/data/today_verses.json');
@@ -75,12 +75,14 @@ class BibleRepository {
 
     if (_cachedDailyVerses == null || _cachedDailyVerses!.isEmpty) return null;
 
-    final now = DateTime.now();
-    final startOfYear = DateTime(now.year, 1, 1);
-    final dayNumber = now.difference(startOfYear).inDays + 1;
+    final startOfYear = DateTime(date.year, 1, 1);
+    final dayNumber = date.difference(startOfYear).inDays + 1;
     final index = (dayNumber - 1) % _cachedDailyVerses!.length;
     return _cachedDailyVerses![index];
   }
+
+  /// Returns today's verse following the exact day-of-year formula from PocketBible.in
+  Future<DailyVerse?> getTodayVerse() => getVerseForDate(DateTime.now());
 
   /// Returns a random verse reference from the 31,098 verses of the Bible
   Future<Map<String, dynamic>?> getRandomVerseRef() async {
