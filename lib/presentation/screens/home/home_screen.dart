@@ -4,7 +4,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../providers/bible_navigation_provider.dart';
 import '../../../providers/theme_provider.dart';
 import '../../widgets/app_drawer.dart';
-import '../reader/reader_screen.dart';
 import '../search/search_screen.dart';
 import 'widgets/continue_reading_card.dart';
 import 'widgets/daily_verse_card.dart';
@@ -13,54 +12,14 @@ import 'widgets/quick_actions_grid.dart';
 import 'widgets/random_verse_card.dart';
 import 'widgets/sticky_selector_bar.dart';
 
-class HomeScreen extends StatefulWidget {
-  final bool autoOpenLastRead;
-
-  const HomeScreen({super.key, this.autoOpenLastRead = true});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  static bool _hasAutoOpened = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkAutoOpen());
-  }
-
-  void _checkAutoOpen() {
-    if (widget.autoOpenLastRead && !_hasAutoOpened) {
-      final nav = context.read<BibleNavigationProvider>();
-      if (!nav.isLoading && nav.currentBook != null) {
-        _hasAutoOpened = true;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const ReaderScreen()),
-        );
-      }
-    }
-  }
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final nav = context.watch<BibleNavigationProvider>();
     final themeProvider = context.watch<ThemeProvider>();
     final isDark = themeProvider.isDarkMode;
-
-    if (widget.autoOpenLastRead && !_hasAutoOpened && !nav.isLoading && nav.currentBook != null) {
-      _hasAutoOpened = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const ReaderScreen()),
-          );
-        }
-      });
-    }
 
     final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
     final accentColor = isDark ? AppColors.darkAccent : AppColors.lightAccent;

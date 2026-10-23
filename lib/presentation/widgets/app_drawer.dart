@@ -131,7 +131,7 @@ class AppDrawer extends StatelessWidget {
                     Navigator.pop(context);
                     Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (_) => const HomeScreen(autoOpenLastRead: false)),
+                      MaterialPageRoute(builder: (_) => const HomeScreen()),
                       (route) => false,
                     );
                   },

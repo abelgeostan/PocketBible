@@ -306,7 +306,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
             onTap: () {
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (_) => const HomeScreen(autoOpenLastRead: false)),
+                MaterialPageRoute(builder: (_) => const HomeScreen()),
                 (route) => false,
               );
             },
