@@ -6,6 +6,7 @@ import 'core/constants/app_constants.dart';
 import 'core/services/notification_service.dart';
 import 'core/theme/app_theme.dart';
 import 'presentation/screens/reader/reader_screen.dart';
+import 'presentation/screens/splash/splash_screen.dart';
 import 'providers/bible_navigation_provider.dart';
 import 'providers/bookmarks_provider.dart';
 import 'providers/highlights_provider.dart';
@@ -151,7 +152,7 @@ class _PocketBibleAppState extends State<PocketBibleApp> {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeProvider.themeMode,
-      home: const ReaderScreen(),
+      home: const SplashScreen(),
     );
   }
 }
