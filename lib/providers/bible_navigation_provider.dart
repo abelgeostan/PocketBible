@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../data/models/bible_book.dart';
 import '../data/models/reading_position.dart';
@@ -16,6 +17,12 @@ class BibleNavigationProvider extends ChangeNotifier {
   int _verseJumpToken = 0;
   ReadingPosition? _lastReadPosition;
   bool _isLoading = true;
+  final Completer<void> _initCompleter = Completer<void>();
+  String? _pendingBookCode;
+  int? _pendingChapter;
+  int? _pendingVerse;
+
+  Future<void> ensureInitialized() => _initCompleter.future;
 
   List<BibleBook> get books => _books;
   List<BibleBook> get oldTestamentBooks => _books.where((b) => b.isOldTestament).toList();
@@ -60,7 +67,27 @@ class BibleNavigationProvider extends ChangeNotifier {
       _books = await _bibleRepository.getBooks();
       _lastReadPosition = await _userDataRepository.getLastRead();
 
-      if (_lastReadPosition != null) {
+      if (_pendingBookCode != null) {
+        final pCode = _pendingBookCode!;
+        final pChap = _pendingChapter ?? 1;
+        final pVerse = _pendingVerse;
+        _pendingBookCode = null;
+        _pendingChapter = null;
+        _pendingVerse = null;
+        try {
+          final book = _books.firstWhere((b) => b.code == pCode);
+          _currentBook = book;
+          _selectedTestament = book.testament;
+          _currentChapter = pChap.clamp(1, book.totalChapters);
+          _targetVerse = pVerse;
+          if (pVerse != null) {
+            _verseJumpToken++;
+          }
+          _saveCurrentPosition();
+        } catch (_) {
+          _setDefaultBook();
+        }
+      } else if (_lastReadPosition != null) {
         try {
           _currentBook = _books.firstWhere((b) => b.code == _lastReadPosition!.bookCode);
           _currentChapter = _lastReadPosition!.chapter;
@@ -76,6 +103,9 @@ class BibleNavigationProvider extends ChangeNotifier {
       _setDefaultBook();
     } finally {
       _isLoading = false;
+      if (!_initCompleter.isCompleted) {
+        _initCompleter.complete();
+      }
       notifyListeners();
     }
   }
@@ -142,6 +172,13 @@ class BibleNavigationProvider extends ChangeNotifier {
   }
 
   void navigateTo(String bookCode, int chapter, {int? verse, bool incrementJumpToken = true}) {
+    if (_books.isEmpty || _isLoading) {
+      _pendingBookCode = bookCode;
+      _pendingChapter = chapter;
+      _pendingVerse = verse;
+      return;
+    }
+
     try {
       final book = _books.firstWhere((b) => b.code == bookCode);
       _currentBook = book;
@@ -153,7 +190,9 @@ class BibleNavigationProvider extends ChangeNotifier {
       }
       _saveCurrentPosition();
       notifyListeners();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('BibleNavigationProvider: Error navigating: $e');
+    }
   }
 
   void updateCurrentVerse(int verse) {

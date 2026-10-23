@@ -157,16 +157,18 @@ class NotificationService {
     if (launchDetails?.didNotificationLaunchApp == true &&
         launchDetails?.notificationResponse?.payload != null) {
       _pendingPayload = launchDetails!.notificationResponse!.payload;
+      if (_onTapHandler != null) {
+        _onTapHandler!(_pendingPayload!);
+      }
     }
 
     _initialized = true;
   }
 
   void _handlePayload(String payload) {
+    _pendingPayload = payload;
     if (_onTapHandler != null) {
       _onTapHandler!(payload);
-    } else {
-      _pendingPayload = payload;
     }
   }
 
