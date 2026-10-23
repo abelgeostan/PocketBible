@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/constants/app_constants.dart';
 import 'core/services/notification_service.dart';
 import 'core/theme/app_theme.dart';
-import 'presentation/screens/splash/splash_screen.dart';
 import 'presentation/screens/reader/reader_screen.dart';
 import 'providers/bible_navigation_provider.dart';
 import 'providers/bookmarks_provider.dart';
@@ -122,8 +121,24 @@ void main() async {
   );
 }
 
-class PocketBibleApp extends StatelessWidget {
+class PocketBibleApp extends StatefulWidget {
   const PocketBibleApp({super.key});
+
+  @override
+  State<PocketBibleApp> createState() => _PocketBibleAppState();
+}
+
+class _PocketBibleAppState extends State<PocketBibleApp> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final initialPayload = NotificationService.instance.consumePendingPayload();
+      if (initialPayload != null) {
+        await _handleNotificationPayload(initialPayload);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,7 +151,7 @@ class PocketBibleApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeProvider.themeMode,
-      home: const SplashScreen(),
+      home: const ReaderScreen(),
     );
   }
 }
