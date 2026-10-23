@@ -56,8 +56,13 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     final isDark = context.watch<ThemeProvider>().isDarkMode;
     final bgColor = isDark ? AppColors.darkBg : AppColors.lightBg;
-    final accentColor = isDark ? AppColors.darkAccent : AppColors.lightAccent;
     final mutedColor = isDark ? AppColors.darkMuted : AppColors.lightMuted;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final logoWidth = (screenWidth * 0.68).clamp(250.0, 340.0);
+
+    final logoAsset = isDark
+        ? 'assets/icons/pocketbible_full_logo_dark.png'
+        : 'assets/icons/pocketbible_full_logo.png';
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -66,42 +71,18 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              'assets/icons/pocketbible-icon-touch.png',
-              width: 96,
-              height: 96,
+              logoAsset,
+              width: logoWidth,
               fit: BoxFit.contain,
             ),
-            const SizedBox(height: 20),
-            RichText(
-              text: TextSpan(
-                text: 'PocketBible',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w700,
-                  color: accentColor,
-                  fontFamily: 'Noto Sans Malayalam',
-                  letterSpacing: -0.5,
-                ),
-                children: [
-                  TextSpan(
-                    text: '.in',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: mutedColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 14),
             Text(
               'സത്യവേദപുസ്തകം',
               style: TextStyle(
                 fontSize: 14,
                 color: mutedColor,
                 fontFamily: 'Noto Sans Malayalam',
-                letterSpacing: 0.3,
+                letterSpacing: 0.5,
               ),
             ),
           ],

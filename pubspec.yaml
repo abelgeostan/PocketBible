@@ -47,6 +47,8 @@ flutter:
     - assets/icons/pocketbible-icon.webp
     - assets/icons/pocketbible-icon-touch.png
     - assets/icons/app_icon.png
+    - assets/icons/pocketbible_full_logo.png
+    - assets/icons/pocketbible_full_logo_dark.png
 
   fonts:
     - family: Noto Sans Malayalam
