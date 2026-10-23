@@ -22,7 +22,12 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _startApp() async {
     final nav = context.read<BibleNavigationProvider>();
-    await nav.ensureInitialized();
+
+    // Keep splash screen visible for a moment so the user sees the branding
+    await Future.wait([
+      nav.ensureInitialized(),
+      Future.delayed(const Duration(milliseconds: 1400)),
+    ]);
 
     // Check if cold start came from a notification
     final pendingPayload = NotificationService.instance.consumePendingPayload();
@@ -47,7 +52,7 @@ class _SplashScreenState extends State<SplashScreen> {
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
-        transitionDuration: const Duration(milliseconds: 200),
+        transitionDuration: const Duration(milliseconds: 300),
       ),
     );
   }
