@@ -56,9 +56,8 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     final isDark = context.watch<ThemeProvider>().isDarkMode;
     final bgColor = isDark ? AppColors.darkBg : AppColors.lightBg;
-    final mutedColor = isDark ? AppColors.darkMuted : AppColors.lightMuted;
     final screenWidth = MediaQuery.of(context).size.width;
-    final logoWidth = (screenWidth * 0.68).clamp(250.0, 340.0);
+    final logoWidth = (screenWidth * 0.82).clamp(280.0, 380.0);
 
     final logoAsset = isDark
         ? 'assets/icons/pocketbible_full_logo_dark.png'
@@ -67,25 +66,13 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: bgColor,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              logoAsset,
-              width: logoWidth,
-              fit: BoxFit.contain,
-            ),
-            const SizedBox(height: 14),
-            Text(
-              'സത്യവേദപുസ്തകം',
-              style: TextStyle(
-                fontSize: 14,
-                color: mutedColor,
-                fontFamily: 'Noto Sans Malayalam',
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Image.asset(
+            logoAsset,
+            width: logoWidth,
+            fit: BoxFit.contain,
+          ),
         ),
       ),
     );
