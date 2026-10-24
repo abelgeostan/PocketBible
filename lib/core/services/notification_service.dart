@@ -35,79 +35,127 @@ class NotificationService {
   static const String eveningChannelDesc =
       'Daily evening Bible reading reminder';
 
-  // Rich collection of uplifting Daily Bread evening reminders
+// Curated collection of 30 uplifting Daily Bread evening reminders
   static const List<DailyBreadMessage> dailyBreadMessages = [
     DailyBreadMessage(
-      title: "🍞 Don't forget your Daily Bread",
-      body: "Before this day ends, take a moment with God's Word. 📖",
+      title: "📖 വചനത്തിനായി ഒരു നിമിഷം",
+      body: "ഇന്നത്തെ തിരക്കുകൾക്കിടയിൽ ദൈവവചനം വായിക്കാൻ അല്പസമയം മാറ്റിവെക്കൂ.",
     ),
     DailyBreadMessage(
-      title: "🍞 Have you had your Daily Bread today?",
-      body: "Before the day ends, spend a moment with God's Word. ✨",
+      title: "📖 A Moment in the Word",
+      body: "Set aside a few quiet minutes to read Scripture before the day ends.",
     ),
     DailyBreadMessage(
-      title: "🍞 ജീവന്റെ അപ്പം (Daily Bread)",
-      body: "ഇന്നത്തെ ദിവസം അവസാനിക്കുന്നതിനു മുമ്പ് ദൈവവചനത്തിൽ അല്പം സമയം ചിലവഴിക്കൂ. 📖",
+      title: "📚 വായന തുടരാം",
+      body: "നിങ്ങൾ അവസാനിപ്പിച്ച അധ്യായത്തിൽ നിന്ന് വീണ്ടും വായന തുടങ്ങാം. PocketBible തുറക്കൂ.",
     ),
     DailyBreadMessage(
-      title: "🌙 ദൈവവചനത്തോടെ ഒരു സന്ധ്യ",
-      body: "സമാധാനത്തോടെ ഉറങ്ങാൻ തിരുവചനത്തിലെ വാഗ്ദത്തങ്ങൾ ധ്യാനിക്കൂ. 🕊️",
+      title: "📚 Continue Your Reading",
+      body: "Pick up where you left off and continue your Bible reading in PocketBible.",
     ),
     DailyBreadMessage(
-      title: "🕊️ Evening Peace with God's Word",
-      body: "Rest your mind and heart in the Word before you sleep. 🌙",
+      title: "🙏 നന്ദിയോടെ ദിനം അവസാനിപ്പിക്കാം",
+      body: "ഇന്ന് ലഭിച്ച നന്മകൾ ഓർത്തു ദൈവത്തോട് നന്ദി പറയാൻ ഒരു നിമിഷം മാറ്റിവെക്കൂ.",
     ),
     DailyBreadMessage(
-      title: "📖 A Moment for Your Soul",
-      body: "Take a quiet moment tonight with God's promises. 🙏",
+      title: "🙏 End the Day with Gratitude",
+      body: "Take a moment to thank God for the good you experienced today.",
     ),
     DailyBreadMessage(
-      title: "✨ Time for Daily Bread",
-      body: "Let God's Word be a lamp to your feet as the day closes. 🕯️",
+      title: "🕊️ പ്രാർത്ഥനയ്ക്കൊരു നിമിഷം",
+      body: "നിങ്ങളുടെ ചിന്തകളും ആവശ്യങ്ങളും ദൈവസന്നിധിയിൽ സമർപ്പിച്ച് ശാന്തമായി പ്രാർത്ഥിക്കൂ.",
     ),
     DailyBreadMessage(
-      title: "🌙 Pause & Reflect",
-      body: "A verse before bed brings peace to the night. Open PocketBible. 📖",
+      title: "🕊️ Take a Moment to Pray",
+      body: "Bring your thoughts and needs before God in a quiet moment of prayer.",
     ),
     DailyBreadMessage(
-      title: "✝️ Man Shall Not Live by Bread Alone",
-      body: "Nourish your soul with the Word of God this evening. 🍞",
+      title: "🌙 ഉറങ്ങുന്നതിനു മുമ്പ്",
+      body: "രാത്രി വിശ്രമിക്കുന്നതിന് മുമ്പ് ഒരു അധ്യായം വായിച്ച് ദൈവവചനം ധ്യാനിക്കൂ.",
     ),
     DailyBreadMessage(
-      title: "🌿 Rest in His Presence",
-      body: "Cast your cares on Him tonight. Read a chapter before sleep. 🤍",
+      title: "🌙 Before You Rest",
+      body: "Read a chapter and reflect on God's Word before settling down for the night.",
     ),
     DailyBreadMessage(
-      title: "⭐ Light for Your Evening",
-      body: "Wrap up your day with comfort and wisdom from the Holy Scripture. 📖",
+      title: "🕊️ ദൈവസമാധാനത്തിൽ വിശ്രമിക്കൂ",
+      body: "ദിവസാവസാനത്തിൽ ഒരു നിമിഷം നിശ്ശബ്ദമായി ഇരുന്ന് ദൈവത്തിന്റെ സമാധാനം ധ്യാനിക്കൂ.",
     ),
     DailyBreadMessage(
-      title: "🙏 ഇന്നത്തെ ദിനം നന്ദിയോടെ",
-      body: "ദൈവം തന്ന നന്മകൾക്ക് നന്ദി പറഞ്ഞ് ഒരു വാക്യം വായിക്കാം. ✝️",
+      title: "🕊️ Rest in God's Peace",
+      body: "Pause for a quiet moment and reflect on God's peace as the day comes to a close.",
     ),
     DailyBreadMessage(
-      title: "🕯️ നിന്റെ വചനം എന്റെ കാലിന്നു ദീപം",
-      body: "രാത്രിയുടെ ശാന്തതയിൽ വിശുദ്ധ വേദപുസ്തകം തുറക്കൂ. 📖",
+      title: "✨ നിമിഷം നിർത്തി ചിന്തിക്കൂ",
+      body: "ഇന്നത്തെ അനുഭവങ്ങൾ ഓർത്തു ദൈവവചനത്തിന്റെ വെളിച്ചത്തിൽ ഹൃദയം പരിശോധിക്കൂ.",
     ),
     DailyBreadMessage(
-      title: "🍞 Have you paused with the Word?",
-      body: "A few minutes with Scripture can transform your evening. 🕊️",
+      title: "✨ Pause and Reflect",
+      body: "Look back on your day and reflect with a heart guided by Scripture.",
     ),
     DailyBreadMessage(
-      title: "🌟 End Your Day with Grace",
-      body: "Let His peace guard your heart tonight. Spend a moment in the Word. 📖",
+      title: "🌅 നാളേക്കുള്ള പ്രത്യാശ",
+      body: "ഇന്നത്തെ ദിവസം എങ്ങനെയായിരുന്നാലും ദൈവത്തിൽ പ്രത്യാശയോടെ നാളെയെ വരവേൽക്കൂ.",
     ),
     DailyBreadMessage(
-      title: "📖 ദൈവത്തിന്റെ വചനം ജീവനുള്ളത്",
-      body: "ഉറങ്ങുന്നതിനു മുൻപ് തിരുവചനം ധ്യാനിക്കുന്നത് ഹൃദയത്തിന് ആശ്വാസം നൽകും. 🌸",
+      title: "🌅 Hope for Tomorrow",
+      body: "Whatever today brought, look toward tomorrow with hope in God.",
     ),
     DailyBreadMessage(
-      title: "🕊️ Find Rest in Scripture",
-      body: "He gives His beloved sleep. End your day with PocketBible. 🌙",
+      title: "🤍 അവന്റെ കരുതലിൽ വിശ്രമിക്കൂ",
+      body: "നിങ്ങളുടെ ചിന്താകുലങ്ങൾ ദൈവത്തിന്റെ കരങ്ങളിൽ ഏൽപ്പിച്ച് സമാധാനത്തോടെ വിശ്രമിക്കൂ.",
     ),
     DailyBreadMessage(
-      title: "🍞 Daily Bread for the Soul",
-      body: "Taste and see that the Lord is good. Read tonight's scripture. ✨",
+      title: "🤍 Rest in His Care",
+      body: "Place your worries in God's hands and give yourself a quiet moment to rest.",
+    ),
+    DailyBreadMessage(
+      title: "💪 ഇന്നത്തേക്കുള്ള ശക്തി",
+      body: "ക്ഷീണിതരാകുമ്പോൾ ദൈവത്തിൽ നിന്ന് ശക്തിയും ധൈര്യവും തേടൂ.",
+    ),
+    DailyBreadMessage(
+      title: "💪 Strength for Today",
+      body: "When you feel weary, turn to God for renewed strength and courage.",
+    ),
+    DailyBreadMessage(
+      title: "🌿 നന്ദിയുള്ള ഹൃദയം",
+      body: "ചെറിയ അനുഗ്രഹങ്ങൾ പോലും ഓർത്തു നന്ദിയുള്ള ഹൃദയത്തോടെ ഈ ദിവസം അവസാനിപ്പിക്കൂ.",
+    ),
+    DailyBreadMessage(
+      title: "🌿 A Grateful Heart",
+      body: "Notice even the small blessings and end your day with a grateful heart.",
+    ),
+    DailyBreadMessage(
+      title: "📜 വാഗ്ദത്തങ്ങളിൽ ആശ്രയിക്കൂ",
+      body: "ദൈവത്തിന്റെ വാഗ്ദത്തങ്ങൾ ഓർത്തു വിശ്വാസത്തോടെ മുന്നോട്ട് പോകൂ.",
+    ),
+    DailyBreadMessage(
+      title: "📜 Trust His Promises",
+      body: "Remember God's promises and take your next step in faith.",
+    ),
+    DailyBreadMessage(
+      title: "🕯️ നിങ്ങളുടെ വഴിക്ക് വെളിച്ചം",
+      body: "നിങ്ങളുടെ തീരുമാനങ്ങൾക്കും നാളെയുടെ വഴികൾക്കും ദൈവവചനത്തിൽ മാർഗ്ഗദർശനം തേടൂ.",
+    ),
+    DailyBreadMessage(
+      title: "🕯️ Light for Your Path",
+      body: "Seek guidance in Scripture for your choices and the path ahead.",
+    ),
+    DailyBreadMessage(
+      title: "🌙 ദൈവത്തോടൊരു ശാന്ത നിമിഷം",
+      body: "ഫോൺ മാറ്റിവെച്ച് കുറച്ചുനേരം ദൈവവചനത്തോടൊപ്പം ശാന്തമായി ഇരിക്കൂ.",
+    ),
+    DailyBreadMessage(
+      title: "🌙 A Quiet Moment with God",
+      body: "Set distractions aside and spend a quiet moment with God's Word.",
+    ),
+    DailyBreadMessage(
+      title: "🙏 പ്രാർത്ഥനയോടെ അവസാനിപ്പിക്കാം",
+      body: "നന്ദിയും ആവശ്യങ്ങളും ദൈവത്തോട് പങ്കുവെച്ച് ഈ ദിവസം പ്രാർത്ഥനയോടെ അവസാനിപ്പിക്കൂ.",
+    ),
+    DailyBreadMessage(
+      title: "🙏 Close with Prayer",
+      body: "Share your thanks and needs with God, and close the day in prayer.",
     ),
   ];
 

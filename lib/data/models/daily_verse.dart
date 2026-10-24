@@ -4,6 +4,8 @@ class DailyVerse {
   final int chapter;
   final int verse;
   final String text;
+  final String? theme;
+  final int? day;
 
   const DailyVerse({
     required this.bookCode,
@@ -11,17 +13,21 @@ class DailyVerse {
     required this.chapter,
     required this.verse,
     required this.text,
+    this.theme,
+    this.day,
   });
 
   String get reference => '$bookName $chapter:$verse';
 
   factory DailyVerse.fromJson(Map<String, dynamic> json) {
     return DailyVerse(
-      bookCode: json['c'] as String,
-      bookName: json['b'] as String,
-      chapter: json['ch'] as int,
-      verse: json['v'] as int,
-      text: json['t'] as String,
+      bookCode: (json['c'] ?? json['usfm_book_id']) as String,
+      bookName: (json['b'] ?? json['book']) as String,
+      chapter: (json['ch'] ?? json['chapter']) as int,
+      verse: (json['v'] ?? json['verse']) as int,
+      text: (json['t'] ?? json['text_ml']) as String,
+      theme: json['theme'] as String?,
+      day: json['day'] as int?,
     );
   }
 }
