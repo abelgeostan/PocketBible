@@ -7,7 +7,6 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../data/models/daily_verse.dart';
 import '../../../../data/repositories/bible_repository.dart';
 import '../../../../providers/bible_navigation_provider.dart';
-import '../../../../providers/notification_provider.dart';
 import '../../../widgets/toast_notification.dart';
 import '../../reader/reader_screen.dart';
 
@@ -103,21 +102,6 @@ class _DailyVerseCardState extends State<DailyVerseCard> {
               ),
               Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.notifications_active_outlined, size: 18),
-                    color: mutedColor,
-                    tooltip: 'Send test notification',
-                    padding: const EdgeInsets.all(6),
-                    constraints: const BoxConstraints(),
-                    onPressed: () async {
-                      final notifProvider = context.read<NotificationProvider>();
-                      await notifProvider.sendTestNotification(isMorning: true);
-                      if (context.mounted) {
-                        ToastNotification.show(context, 'Sample Daily Verse notification sent!');
-                      }
-                    },
-                  ),
-                  const SizedBox(width: 4),
                   IconButton(
                     icon: const Icon(Icons.copy_rounded, size: 18),
                     color: mutedColor,
