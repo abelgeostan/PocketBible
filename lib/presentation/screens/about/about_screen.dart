@@ -25,10 +25,25 @@ class AboutScreen extends StatelessWidget {
           Center(
             child: Column(
               children: [
-                Image.asset(
-                  'assets/icons/app_icon.png',
-                  width: 90,
-                  height: 90,
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: isDark ? Colors.black45 : Colors.black12,
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: Image.asset(
+                      'assets/icons/app_icon.png',
+                      width: 90,
+                      height: 90,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 RichText(
