@@ -9,6 +9,8 @@ import '../reader/reader_screen.dart';
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
+  static bool isActive = false;
+
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
@@ -17,7 +19,14 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    SplashScreen.isActive = true;
     _startApp();
+  }
+
+  @override
+  void dispose() {
+    SplashScreen.isActive = false;
+    super.dispose();
   }
 
   Future<void> _startApp() async {
@@ -48,6 +57,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
+        settings: const RouteSettings(name: '/reader'),
         pageBuilder: (context, animation, secondaryAnimation) => const ReaderScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);

@@ -67,8 +67,10 @@ class ChapterContentView extends StatefulWidget {
 
     if (!isAdjacentSwipe) {
       _immediatePreviousPosition = null;
-      for (final state in _activeStates.values) {
-        state.resetToTop();
+      for (final entry in _activeStates.entries) {
+        if (entry.key != newKey) {
+          entry.value.resetToTop();
+        }
       }
       return 1;
     }
@@ -171,6 +173,8 @@ class _ChapterContentViewState extends State<ChapterContentView> {
     _currentOffset = initialOffset;
     if (isSaved) {
       _lastReportedVerse = ChapterContentView._immediatePreviousPosition!.visibleVerse;
+    } else if (widget.targetVerse != null) {
+      _lastReportedVerse = widget.targetVerse;
     }
 
     _scrollController = ScrollController(initialScrollOffset: initialOffset);
@@ -181,7 +185,7 @@ class _ChapterContentViewState extends State<ChapterContentView> {
       _isLoading = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        if (!isSaved && widget.targetVerse != null && widget.verseJumpToken > 0) {
+        if (!isSaved && widget.targetVerse != null) {
           _checkTargetVerse();
         } else if (widget.isCurrent) {
           _reportVisibleVerse();
@@ -302,7 +306,7 @@ class _ChapterContentViewState extends State<ChapterContentView> {
         _verses = verses;
         _isLoading = false;
       });
-      if (!isSaved && widget.targetVerse != null && widget.verseJumpToken > 0) {
+      if (!isSaved && widget.targetVerse != null) {
         _checkTargetVerse();
       } else if (widget.isCurrent) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -362,10 +366,9 @@ class _ChapterContentViewState extends State<ChapterContentView> {
     _isProgrammaticScroll = true;
 
     void done() {
-      Future.delayed(const Duration(milliseconds: 100), () {
+      Future.delayed(const Duration(milliseconds: 150), () {
         if (mounted) {
           _isProgrammaticScroll = false;
-          _reportVisibleVerse();
         }
       });
     }

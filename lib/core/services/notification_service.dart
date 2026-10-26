@@ -199,15 +199,14 @@ class NotificationService {
       },
     );
 
-    // 3. Check if app was launched via notification click
+    // 3. Check if app was launched via notification click (cold launch)
     final launchDetails =
         await _notificationsPlugin.getNotificationAppLaunchDetails();
     if (launchDetails?.didNotificationLaunchApp == true &&
         launchDetails?.notificationResponse?.payload != null) {
       _pendingPayload = launchDetails!.notificationResponse!.payload;
-      if (_onTapHandler != null) {
-        _onTapHandler!(_pendingPayload!);
-      }
+      // Do not invoke _onTapHandler here on cold launch.
+      // SplashScreen consumes _pendingPayload cleanly after initialization.
     }
 
     _initialized = true;

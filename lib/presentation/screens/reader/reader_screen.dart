@@ -26,6 +26,8 @@ class ChapterRef {
 class ReaderScreen extends StatefulWidget {
   const ReaderScreen({super.key});
 
+  static bool isActive = false;
+
   @override
   State<ReaderScreen> createState() => _ReaderScreenState();
 }
@@ -45,6 +47,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   @override
   void initState() {
     super.initState();
+    ReaderScreen.isActive = true;
     final nav = context.read<BibleNavigationProvider>();
     if (nav.books.isNotEmpty) {
       _initChapters(nav);
@@ -130,8 +133,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
       final nav = context.read<BibleNavigationProvider>();
       if (ref.book.code != nav.currentBook?.code || ref.chapter != nav.currentChapter) {
         nav.navigateTo(ref.book.code, ref.chapter, verse: restoredVerse, incrementJumpToken: false);
-      } else if (nav.targetVerse != restoredVerse) {
-        nav.updateCurrentVerse(restoredVerse);
       }
     }
   }
@@ -156,6 +157,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
   @override
   void dispose() {
+    ReaderScreen.isActive = false;
     _pageController?.dispose();
     super.dispose();
   }

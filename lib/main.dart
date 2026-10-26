@@ -19,54 +19,41 @@ import 'providers/theme_provider.dart';
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> _handleNotificationPayload(String payload) async {
+  BuildContext? navContext = appNavigatorKey.currentContext;
+  int retries = 0;
+  while (navContext == null && retries < 30) {
+    await Future.delayed(const Duration(milliseconds: 50));
+    navContext = appNavigatorKey.currentContext;
+    retries++;
+  }
+
+  if (navContext == null) return;
+
+  final nav = navContext.read<BibleNavigationProvider>();
+  await nav.ensureInitialized();
+
   if (payload.startsWith('verse:')) {
     final parts = payload.split(':');
     if (parts.length >= 4) {
       final bookCode = parts[1];
       final chapter = int.tryParse(parts[2]) ?? 1;
       final verse = int.tryParse(parts[3]) ?? 1;
-
-      // 1. Wait until Navigator is mounted
-      BuildContext? navContext = appNavigatorKey.currentContext;
-      int retries = 0;
-      while (navContext == null && retries < 30) {
-        await Future.delayed(const Duration(milliseconds: 50));
-        navContext = appNavigatorKey.currentContext;
-        retries++;
-      }
-
-      if (navContext == null) return;
-
-      // 2. Ensure BibleNavigationProvider has finished loading books
-      final nav = navContext.read<BibleNavigationProvider>();
-      await nav.ensureInitialized();
-
-      // 3. Navigate to targeted book, chapter, and verse
       nav.navigateTo(bookCode, chapter, verse: verse);
-
-      // 4. Open ReaderScreen cleanly on top of HomeScreen
-      appNavigatorKey.currentState?.pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const ReaderScreen()),
-        (route) => route.isFirst,
-      );
     }
-  } else if (payload == 'daily_bread') {
-    BuildContext? navContext = appNavigatorKey.currentContext;
-    int retries = 0;
-    while (navContext == null && retries < 30) {
-      await Future.delayed(const Duration(milliseconds: 50));
-      navContext = appNavigatorKey.currentContext;
-      retries++;
-    }
+  }
 
-    if (navContext == null) return;
-
-    final nav = navContext.read<BibleNavigationProvider>();
-    await nav.ensureInitialized();
-
-    appNavigatorKey.currentState?.pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const ReaderScreen()),
-      (route) => route.isFirst,
+  // If ReaderScreen is already active, close any open modal/dialog/sheet
+  if (ReaderScreen.isActive) {
+    appNavigatorKey.currentState?.popUntil(
+      (route) => route.settings.name == '/reader' || route.isFirst,
+    );
+  } else if (!SplashScreen.isActive) {
+    // If not already on ReaderScreen and not on SplashScreen, navigate to ReaderScreen
+    appNavigatorKey.currentState?.push(
+      MaterialPageRoute(
+        builder: (_) => const ReaderScreen(),
+        settings: const RouteSettings(name: '/reader'),
+      ),
     );
   }
 }
@@ -122,24 +109,8 @@ void main() async {
   );
 }
 
-class PocketBibleApp extends StatefulWidget {
+class PocketBibleApp extends StatelessWidget {
   const PocketBibleApp({super.key});
-
-  @override
-  State<PocketBibleApp> createState() => _PocketBibleAppState();
-}
-
-class _PocketBibleAppState extends State<PocketBibleApp> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final initialPayload = NotificationService.instance.consumePendingPayload();
-      if (initialPayload != null) {
-        await _handleNotificationPayload(initialPayload);
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
