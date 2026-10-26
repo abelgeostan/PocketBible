@@ -5,6 +5,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../providers/notification_provider.dart';
 import '../../../providers/reader_settings_provider.dart';
 import '../../../providers/theme_provider.dart';
+import '../../widgets/toast_notification.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -298,6 +299,48 @@ class SettingsScreen extends StatelessWidget {
                     },
                   ),
                 ],
+
+                Divider(height: 1, color: lineColor),
+
+                ListTile(
+                  leading: Icon(Icons.notifications_active_outlined, color: accentColor, size: 20),
+                  title: Text(
+                    'പ്രഭാത വചനം ടെസ്റ്റ് ചെയ്യുക (Test Daily Verse)',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textColor),
+                  ),
+                  subtitle: Text(
+                    'Send a sample daily verse notification to preview and test',
+                    style: TextStyle(fontSize: 12, color: mutedColor),
+                  ),
+                  trailing: Icon(Icons.send_rounded, color: accentColor, size: 18),
+                  onTap: () async {
+                    await notifProvider.sendTestNotification(isMorning: true);
+                    if (context.mounted) {
+                      ToastNotification.show(context, 'Sample Daily Verse notification sent!');
+                    }
+                  },
+                ),
+
+                Divider(height: 1, color: lineColor),
+
+                ListTile(
+                  leading: Icon(Icons.notifications_none_rounded, color: accentColor, size: 20),
+                  title: Text(
+                    'സായാഹ്ന സന്ദേശം ടെസ്റ്റ് ചെയ്യുക (Test Daily Bread)',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textColor),
+                  ),
+                  subtitle: Text(
+                    'Send a sample daily bread notification to preview and test',
+                    style: TextStyle(fontSize: 12, color: mutedColor),
+                  ),
+                  trailing: Icon(Icons.send_rounded, color: accentColor, size: 18),
+                  onTap: () async {
+                    await notifProvider.sendTestNotification(isMorning: false);
+                    if (context.mounted) {
+                      ToastNotification.show(context, 'Sample Daily Bread notification sent!');
+                    }
+                  },
+                ),
               ],
             ),
           ),

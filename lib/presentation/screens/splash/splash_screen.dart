@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/notification_service.dart';
@@ -37,6 +38,16 @@ class _SplashScreenState extends State<SplashScreen> {
       nav.ensureInitialized(),
       Future.delayed(const Duration(milliseconds: 1100)),
     ]);
+
+    // One-time automatic sample daily verse notification for verification
+    SharedPreferences.getInstance().then((prefs) {
+      if (!(prefs.getBool('sample_verse_sent_check_v1') ?? false)) {
+        prefs.setBool('sample_verse_sent_check_v1', true);
+        Future.delayed(const Duration(milliseconds: 2500), () {
+          NotificationService.instance.sendTestNotification(isMorning: true);
+        });
+      }
+    });
 
     // Check if cold start came from a notification
     final pendingPayload = NotificationService.instance.consumePendingPayload();
