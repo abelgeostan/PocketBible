@@ -294,6 +294,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
       },
       child: Scaffold(
         drawer: const AppDrawer(),
+        drawerEnableOpenDragGesture: false,
         appBar: AppBar(
           titleSpacing: 0,
           leading: Builder(

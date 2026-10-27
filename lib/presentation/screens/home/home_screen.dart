@@ -29,6 +29,7 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       drawer: const AppDrawer(),
+      drawerEnableOpenDragGesture: false,
       appBar: AppBar(
         titleSpacing: 0,
         leading: Builder(
