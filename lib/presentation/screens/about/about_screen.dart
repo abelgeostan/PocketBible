@@ -148,21 +148,62 @@ class AboutScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'പ്രധാന സവിശേഷതകൾ (Features)',
+                    'പ്രധാന സവിശേഷതകൾ (Key Features)',
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: accentColor,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  _buildFeatureBullet('66 പുസ്തകങ്ങൾ, 1,189 അധ്യായങ്ങൾ, 31,098 വാക്യങ്ങൾ', textColor),
-                  _buildFeatureBullet('100% ഓഫ്‌ലൈൻ പ്രവർത്തനം (ഇന്റർനെറ്റ് ആവശ്യമില്ല)', textColor),
-                  _buildFeatureBullet('ദ്രുത തിരച്ചിൽ (Fast Malayalam Scripture Search)', textColor),
-                  _buildFeatureBullet('ബുക്ക്മാർക്കുകൾ, വർണ്ണ ഹൈലൈറ്റുകൾ, വ്യക്തിഗത കുറിപ്പുകൾ', textColor),
-                  _buildFeatureBullet('ലൈറ്റ് / ഡാർക്ക് തീം, ഫോണ്ട് വലിപ്പ ക്രമീകരണം', textColor),
-                  _buildFeatureBullet('ദിവസത്തെ വചനവും ക്രമരഹിത വചനവും (Daily & Random Verse)', textColor),
-                  _buildFeatureBullet('അവസാനം വായിച്ച അധ്യായം ഓർത്തുസൂക്ഷിക്കുന്നു', textColor),
+                  const SizedBox(height: 12),
+                  _buildFeatureItem(
+                    '66 പുസ്തകങ്ങൾ, 1,189 അധ്യായങ്ങൾ, 31,098 വാക്യങ്ങൾ',
+                    'Complete Bible with 66 books, 1,189 chapters & 31,098 verses',
+                    textColor,
+                    mutedColor,
+                  ),
+                  _buildFeatureItem(
+                    '100% ഓഫ്‌ലൈൻ പ്രവർത്തനം (ഇന്റർനെറ്റ് ആവശ്യമില്ല)',
+                    '100% Offline access — read anywhere without internet',
+                    textColor,
+                    mutedColor,
+                  ),
+                  _buildFeatureItem(
+                    'വേഗതയേറിയ മലയാളം വചന തിരച്ചിൽ',
+                    'Instant Malayalam keyword and scripture search',
+                    textColor,
+                    mutedColor,
+                  ),
+                  _buildFeatureItem(
+                    'അധ്യായങ്ങൾക്കിടയിൽ സുഗമമായ സ്വൈപ്പ് നാവിഗേഷൻ',
+                    'Smooth horizontal swipe navigation between chapters',
+                    textColor,
+                    mutedColor,
+                  ),
+                  _buildFeatureItem(
+                    'ബുക്ക്മാർക്കുകൾ, വർണ്ണ ഹൈലൈറ്റുകൾ, കുറിപ്പുകൾ',
+                    'Personal bookmarks, color highlights, and study notes',
+                    textColor,
+                    mutedColor,
+                  ),
+                  _buildFeatureItem(
+                    'ലൈറ്റ് / ഡാർക്ക് തീം, ഫോണ്ട് വലിപ്പ ക്രമീകരണം',
+                    'Comfortable Light & Dark themes with adjustable font size',
+                    textColor,
+                    mutedColor,
+                  ),
+                  _buildFeatureItem(
+                    'ദിവസേനയുള്ള പ്രഭാത വചനവും സായാഹ്ന ഓർമ്മപ്പെടുത്തലും',
+                    'Daily morning verse and evening reflection notifications',
+                    textColor,
+                    mutedColor,
+                  ),
+                  _buildFeatureItem(
+                    'അവസാനം വായിച്ച സ്ഥാനം ഓർത്തുസൂക്ഷിക്കുന്നു',
+                    'Automatically saves and resumes your last read position',
+                    textColor,
+                    mutedColor,
+                  ),
                 ],
               ),
             ),
@@ -260,17 +301,41 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureBullet(String text, Color textColor) {
+  Widget _buildFeatureItem(
+    String malayalam,
+    String english,
+    Color textColor,
+    Color mutedColor,
+  ) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('• ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
           Expanded(
-            child: Text(
-              text,
-              style: TextStyle(fontSize: 13, height: 1.4, color: textColor),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  malayalam,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    height: 1.35,
+                    color: textColor,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  english,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    height: 1.3,
+                    color: mutedColor,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
