@@ -17,6 +17,25 @@ import '../home/widgets/sticky_selector_bar.dart';
 import '../search/search_screen.dart';
 import 'widgets/chapter_content_view.dart';
 
+/// Customized [PageScrollPhysics] with higher spring stiffness and damping
+/// to settle the page twice as fast (~300ms vs ~700ms default) when swiping,
+/// allowing immediate vertical scrolling without blocking while preserving smooth swipe feel.
+class FastSettlePageScrollPhysics extends PageScrollPhysics {
+  const FastSettlePageScrollPhysics({super.parent});
+
+  @override
+  FastSettlePageScrollPhysics applyTo(ScrollPhysics? ancestor) {
+    return FastSettlePageScrollPhysics(parent: buildParent(ancestor));
+  }
+
+  @override
+  SpringDescription get spring => const SpringDescription(
+        mass: 0.35,
+        stiffness: 220.0,
+        damping: 18.4274,
+      );
+}
+
 class ChapterRef {
   final BibleBook book;
   final int chapter;
@@ -140,8 +159,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
   void _goToNextChapter() {
     if (_pageController != null && _pageController!.hasClients && _currentPageIndex < _allChapters.length - 1) {
       _pageController!.nextPage(
-        duration: const Duration(milliseconds: 320),
-        curve: Curves.easeInOutCubic,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
       );
     }
   }
@@ -149,8 +168,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
   void _goToPreviousChapter() {
     if (_pageController != null && _pageController!.hasClients && _currentPageIndex > 0) {
       _pageController!.previousPage(
-        duration: const Duration(milliseconds: 320),
-        curve: Curves.easeInOutCubic,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
       );
     }
   }
@@ -506,7 +525,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                           controller: _pageController,
                           physics: _isPinching
                               ? const NeverScrollableScrollPhysics()
-                              : const PageScrollPhysics(),
+                              : const FastSettlePageScrollPhysics(),
                           itemCount: _allChapters.length,
                           onPageChanged: _onPageChanged,
                           itemBuilder: (context, index) {
@@ -519,7 +538,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                               isCurrent: isCurrent,
                               physics: _isPinching
                                   ? const NeverScrollableScrollPhysics()
-                                  : null,
+                                  : const AlwaysScrollableScrollPhysics(),
                               hasPrevious: index > 0,
                               hasNext: index < _allChapters.length - 1,
                               onPrevious: _goToPreviousChapter,
