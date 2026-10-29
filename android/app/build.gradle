@@ -22,6 +22,14 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0.0'
 }
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withReader('UTF-8') { reader ->
+        keystoreProperties.load(reader)
+    }
+}
+
 android {
     namespace "in.pocketbible.app"
     compileSdk 36
@@ -50,9 +58,27 @@ android {
         multiDexEnabled true
     }
 
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                def storePath = keystoreProperties['storeFile']
+                if (storePath != null) {
+                    storeFile file(storePath).exists() ? file(storePath) : rootProject.file(storePath)
+                }
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+    }
+
     buildTypes {
         release {
-            signingConfig signingConfigs.debug
+            if (keystorePropertiesFile.exists() && keystoreProperties['keyAlias'] != null) {
+                signingConfig signingConfigs.release
+            } else {
+                signingConfig signingConfigs.debug
+            }
             minifyEnabled false
             shrinkResources false
         }
