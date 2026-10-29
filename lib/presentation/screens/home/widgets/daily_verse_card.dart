@@ -124,7 +124,7 @@ class _DailyVerseCardState extends State<DailyVerseCard> {
                     constraints: const BoxConstraints(),
                     onPressed: () {
                       Share.share(
-                        '${_dailyVerse!.reference}\n${_dailyVerse!.text}\n\n${AppConstants.websiteUrl}',
+                        '${_dailyVerse!.reference}\n${_dailyVerse!.text}\n\n${AppConstants.shareAttribution}',
                       );
                     },
                   ),

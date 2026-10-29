@@ -259,7 +259,7 @@ class VerseActionsModal extends StatelessWidget {
                   onTap: () {
                     Navigator.pop(context);
                     Share.share(
-                      '$formattedVerse\n\n${AppConstants.websiteUrl}',
+                      '$formattedVerse\n\n${AppConstants.shareAttribution}',
                       subject: '${verse.bookName} ${verse.chapter}:${verse.verse}',
                     );
                   },
