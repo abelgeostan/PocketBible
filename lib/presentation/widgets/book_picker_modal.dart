@@ -7,20 +7,33 @@ import '../../providers/bible_navigation_provider.dart';
 class BookPickerModal extends StatefulWidget {
   final Function(BibleBook book) onBookSelected;
   final String? initialTestament;
+  final int initialIndex;
 
   const BookPickerModal({
     super.key,
     required this.onBookSelected,
     this.initialTestament,
+    this.initialIndex = 0,
   });
 
   static Future<BibleBook?> show(BuildContext context, {String? initialTestament}) {
+    int initialIndex = 0;
+    if (initialTestament == 'NT') {
+      initialIndex = 1;
+    } else if (initialTestament == 'OT') {
+      initialIndex = 0;
+    } else {
+      final nav = context.read<BibleNavigationProvider>();
+      initialIndex = (nav.currentBook?.isNewTestament == true) ? 1 : 0;
+    }
+
     return showModalBottomSheet<BibleBook>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => BookPickerModal(
         initialTestament: initialTestament,
+        initialIndex: initialIndex,
         onBookSelected: (book) => Navigator.pop(ctx, book),
       ),
     );
@@ -46,46 +59,63 @@ class _BookPickerModalState extends State<BookPickerModal> with SingleTickerProv
   @override
   void initState() {
     super.initState();
-    final initialIndex = (widget.initialTestament == 'NT') ? 1 : 0;
     _tabController = TabController(
       length: 2,
       vsync: this,
-      initialIndex: initialIndex,
+      initialIndex: widget.initialIndex,
     );
 
     _scrollController.addListener(_onScroll);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scrollController.hasClients) return;
-      final nav = context.read<BibleNavigationProvider>();
-      final currentBook = nav.currentBook;
+      _isProgrammaticScrolling = true;
 
-      if (currentBook != null) {
-        final otBooks = nav.books.where((b) => b.isOldTestament).toList();
-        final ntBooks = nav.books.where((b) => b.isNewTestament).toList();
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      double targetOffset = 0.0;
 
-        double targetOffset = 0.0;
-        final otIndex = otBooks.indexWhere((b) => b.code == currentBook.code);
-        if (otIndex != -1) {
-          // Inside OT: header (36) + index * itemHeight (52)
-          targetOffset = _headerHeight + (otIndex * _itemHeight);
-          if (_tabController.index != 0) _tabController.animateTo(0);
-        } else {
-          final ntIndex = ntBooks.indexWhere((b) => b.code == currentBook.code);
-          if (ntIndex != -1) {
-            // Inside NT: OT header (36) + OT count * 52 + NT header (36) + index * 52
-            targetOffset = _headerHeight + (otBooks.length * _itemHeight) + _headerHeight + (ntIndex * _itemHeight);
-            if (_tabController.index != 1) _tabController.animateTo(1);
+      if (widget.initialTestament == 'OT') {
+        // User explicitly tapped Old Testament (e.g. from Explore Scriptures)
+        targetOffset = 0.0;
+        if (_tabController.index != 0) _tabController.animateTo(0);
+      } else if (widget.initialTestament == 'NT') {
+        // User explicitly tapped New Testament (e.g. from Explore Scriptures)
+        targetOffset = _getNtOffset();
+        if (_tabController.index != 1) _tabController.animateTo(1);
+      } else {
+        // No explicit testament preference -> scroll to currently selected book
+        final nav = context.read<BibleNavigationProvider>();
+        final currentBook = nav.currentBook;
+
+        if (currentBook != null) {
+          final otBooks = nav.books.where((b) => b.isOldTestament).toList();
+          final ntBooks = nav.books.where((b) => b.isNewTestament).toList();
+
+          final otIndex = otBooks.indexWhere((b) => b.code == currentBook.code);
+          if (otIndex != -1) {
+            // Inside OT: header (36) + index * itemHeight (52)
+            targetOffset = _headerHeight + (otIndex * _itemHeight);
+            if (_tabController.index != 0) _tabController.animateTo(0);
+          } else {
+            final ntIndex = ntBooks.indexWhere((b) => b.code == currentBook.code);
+            if (ntIndex != -1) {
+              // Inside NT: OT header (36) + OT count * 52 + NT header (36) + index * 52
+              targetOffset = _headerHeight + (otBooks.length * _itemHeight) + _headerHeight + (ntIndex * _itemHeight);
+              if (_tabController.index != 1) _tabController.animateTo(1);
+            }
           }
+        } else if (widget.initialIndex == 1) {
+          targetOffset = _getNtOffset();
         }
-
-        final maxScroll = _scrollController.position.maxScrollExtent;
-        _scrollController.jumpTo(targetOffset.clamp(0.0, maxScroll));
-      } else if (initialIndex == 1) {
-        final targetOffset = _getNtOffset();
-        final maxScroll = _scrollController.position.maxScrollExtent;
-        _scrollController.jumpTo(targetOffset.clamp(0.0, maxScroll));
       }
+
+      _scrollController.jumpTo(targetOffset.clamp(0.0, maxScroll));
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _isProgrammaticScrolling = false;
+        }
+      });
     });
   }
 
