@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_constants.dart';
 import '../../data/models/bible_verse.dart';
 import 'toast_notification.dart';
 
@@ -258,7 +259,7 @@ class VerseActionsModal extends StatelessWidget {
                   onTap: () {
                     Navigator.pop(context);
                     Share.share(
-                      '$formattedVerse\n\n— PocketBible (സത്യവേദപുസ്തകം)',
+                      '$formattedVerse\n\n${AppConstants.websiteUrl}',
                       subject: '${verse.bookName} ${verse.chapter}:${verse.verse}',
                     );
                   },

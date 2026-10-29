@@ -124,7 +124,7 @@ class _DailyVerseCardState extends State<DailyVerseCard> {
                     constraints: const BoxConstraints(),
                     onPressed: () {
                       Share.share(
-                        '${_dailyVerse!.reference}\n${_dailyVerse!.text}\n\n— PocketBible (സത്യവേദപുസ്തകം 1910)',
+                        '${_dailyVerse!.reference}\n${_dailyVerse!.text}\n\n${AppConstants.websiteUrl}',
                       );
                     },
                   ),
