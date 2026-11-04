@@ -397,103 +397,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
               const StickySelectorBar(navigateOnChapterSelect: false),
               const SizedBox(height: 12),
 
-              // 2. Chapter Title Heading (Swipes smoothly in exact sync with chapter page swipe)
-              SizedBox(
-                height: 48,
-                child: _allChapters.isEmpty
-                    ? const SizedBox.shrink()
-                    : AnimatedBuilder(
-                        animation: _pageController ?? Listenable.merge([]),
-                        builder: (context, _) {
-                          double page = _currentPageIndex.toDouble();
-                          if (!_isExternalNavigation &&
-                              _pageController != null &&
-                              _pageController!.hasClients &&
-                              _pageController!.position.haveDimensions) {
-                            page = _pageController!.page ?? _currentPageIndex.toDouble();
-                          }
-                          return LayoutBuilder(
-                            builder: (context, constraints) {
-                              final width = constraints.maxWidth;
-                              final baseIndex = page.floor();
-                              final fraction = page - baseIndex;
-
-                              Widget buildHeading(int index) {
-                                if (index < 0 || index >= _allChapters.length) {
-                                  return const SizedBox.shrink();
-                                }
-                                final ref = _allChapters[index];
-                                return Container(
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    border: Border(bottom: BorderSide(color: lineColor)),
-                                  ),
-                                  child: FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          '${ref.book.name} ${ref.chapter}',
-                                          textAlign: TextAlign.center,
-                                          maxLines: 1,
-                                          style: TextStyle(
-                                            fontSize: 26,
-                                            fontWeight: FontWeight.w700,
-                                            color: textColor,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 2),
-                                        InkWell(
-                                          onTap: () => _copyFullChapter(ref),
-                                          borderRadius: BorderRadius.circular(4),
-                                          child: Padding(
-                                            padding: const EdgeInsets.only(left: 2, right: 4, top: 1, bottom: 6),
-                                            child: Icon(
-                                              Icons.copy_rounded,
-                                              size: 14,
-                                              color: mutedColor,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }
-
-                              return ClipRect(
-                                child: Stack(
-                                  children: [
-                                    // Primary / left heading
-                                    Positioned(
-                                      left: -fraction * width,
-                                      top: 0,
-                                      bottom: 0,
-                                      width: width,
-                                      child: buildHeading(baseIndex),
-                                    ),
-                                    // Next / right heading during drag
-                                    if (fraction > 0 && baseIndex + 1 < _allChapters.length)
-                                      Positioned(
-                                        left: (1.0 - fraction) * width,
-                                        top: 0,
-                                        bottom: 0,
-                                        width: width,
-                                        child: buildHeading(baseIndex + 1),
-                                      ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-              ),
-              const SizedBox(height: 12),
-
-              // 3. Chapter Content Widget (Verses card slides horizontally with swipe)
+              // 2. Chapter Content Widget (Verses card slides horizontally with swipe)
               Expanded(
                 child: _allChapters.isEmpty
                     ? const Center(child: CircularProgressIndicator())
@@ -517,6 +421,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                               book: ref.book,
                               chapter: ref.chapter,
                               isCurrent: isCurrent,
+                              onCopyChapter: () => _copyFullChapter(ref),
                               physics: _isPinching
                                   ? const NeverScrollableScrollPhysics()
                                   : null,

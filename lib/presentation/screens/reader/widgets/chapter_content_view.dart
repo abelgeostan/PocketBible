@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../../widgets/toast_notification.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../data/models/bible_book.dart';
@@ -31,6 +33,7 @@ class ChapterContentView extends StatefulWidget {
   final int verseJumpToken;
   final ValueChanged<int>? onVerseVisible;
   final ScrollPhysics? physics;
+  final VoidCallback? onCopyChapter;
 
   const ChapterContentView({
     super.key,
@@ -45,6 +48,7 @@ class ChapterContentView extends StatefulWidget {
     this.verseJumpToken = 0,
     this.onVerseVisible,
     this.physics,
+    this.onCopyChapter,
   });
 
   static final Map<String, List<BibleVerse>> _versesCache = {};
@@ -210,8 +214,29 @@ class _ChapterContentViewState extends State<ChapterContentView> {
     }
   }
 
+
+  Future<void> _copyFullChapter() async {
+    if (widget.onCopyChapter != null) {
+      widget.onCopyChapter!();
+      return;
+    }
+    List<BibleVerse> verses = _verses;
+    if (verses.isEmpty) {
+      final key = '${widget.book.code}-${widget.chapter}';
+      verses = ChapterContentView.getCached(key) ??
+          await _bibleRepository.getChapterVerses(widget.book.code, widget.chapter);
+    }
+    if (verses.isEmpty || !mounted) return;
+
+    final versesText = verses.map((v) => '${v.verse} ${v.text}').join('\n');
+    final fullText = '${widget.book.name} ${widget.chapter}\n\n$versesText';
+
+    Clipboard.setData(ClipboardData(text: fullText));
+    ToastNotification.show(context, 'Chapter copied');
+  }
+
   int? _determineVisibleVerse() {
-    if (_scrollController.hasClients && _scrollController.offset <= 15) {
+    if (_scrollController.hasClients && _scrollController.offset <= 65) {
       return 1;
     }
 
@@ -413,14 +438,60 @@ class _ChapterContentViewState extends State<ChapterContentView> {
     final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
     final lineColor = isDark ? AppColors.darkLine : AppColors.lightLine;
     final accentColor = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final mutedColor = isDark ? AppColors.darkMuted : AppColors.lightMuted;
 
     return ListView(
       controller: _scrollController,
       physics: widget.physics,
       padding: EdgeInsets.zero,
       children: [
-            // Chapter Content Widget (Bible Text Card - moves with swipe)
-            if (_isLoading)
+        // 1. Chapter Title Heading (Scrolls with verses)
+        SizedBox(
+          height: 48,
+          child: Container(
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: lineColor)),
+            ),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${widget.book.name} ${widget.chapter}',
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w700,
+                      color: textColor,
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  InkWell(
+                    onTap: _copyFullChapter,
+                    borderRadius: BorderRadius.circular(4),
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 2, right: 4, top: 1, bottom: 6),
+                      child: Icon(
+                        Icons.copy_rounded,
+                        size: 14,
+                        color: mutedColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // 2. Chapter Content Widget (Bible Text Card - moves with swipe)
+        if (_isLoading)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 60),
             child: Center(child: CircularProgressIndicator()),
