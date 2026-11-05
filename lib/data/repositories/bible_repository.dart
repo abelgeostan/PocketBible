@@ -52,12 +52,26 @@ class BibleRepository {
     String? testament,
     String? bookCode,
     int limit = 50,
+    int offset = 0,
   }) async {
     return await _db.searchVerses(
       query,
       testament: testament,
       bookCode: bookCode,
       limit: limit,
+      offset: offset,
+    );
+  }
+
+  Future<int> searchVersesCount(
+    String query, {
+    String? testament,
+    String? bookCode,
+  }) async {
+    return await _db.searchVersesCount(
+      query,
+      testament: testament,
+      bookCode: bookCode,
     );
   }
 

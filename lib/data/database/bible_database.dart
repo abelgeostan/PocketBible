@@ -336,6 +336,7 @@ class BibleDatabase {
     String? testament,
     String? bookCode,
     int limit = 50,
+    int offset = 0,
   }) async {
     final db = await database;
     final cleanQuery = queryText.trim();
@@ -373,12 +374,53 @@ class BibleDatabase {
       JOIN books bk ON bk.code = v.book_code
       WHERE ${whereClauses.join(' AND ')}
       ORDER BY bk.book_order ASC, v.chapter ASC, v.verse ASC
-      LIMIT ?
+      LIMIT ? OFFSET ?
     ''';
     whereArgs.add(limit);
+    whereArgs.add(offset);
 
     final results = await db.rawQuery(sql, whereArgs);
     return results.map((m) => BibleVerse.fromMap(m)).toList();
+  }
+
+  Future<int> searchVersesCount(
+    String queryText, {
+    String? testament,
+    String? bookCode,
+  }) async {
+    final db = await database;
+    final cleanQuery = queryText.trim();
+    if (cleanQuery.isEmpty) return 0;
+
+    final terms = cleanQuery.split(RegExp(r'\s+')).where((s) => s.isNotEmpty).toList();
+    if (terms.isEmpty) return 0;
+
+    final whereClauses = <String>[];
+    final whereArgs = <dynamic>[];
+
+    for (final term in terms) {
+      whereClauses.add('v.text LIKE ?');
+      whereArgs.add('%$term%');
+    }
+
+    if (bookCode != null && bookCode.isNotEmpty) {
+      whereClauses.add('v.book_code = ?');
+      whereArgs.add(bookCode);
+    } else if (testament != null && testament.isNotEmpty) {
+      whereClauses.add('bk.testament = ?');
+      whereArgs.add(testament);
+    }
+
+    final sql = '''
+      SELECT COUNT(*) AS total
+      FROM verses v
+      JOIN books bk ON bk.code = v.book_code
+      WHERE ${whereClauses.join(' AND ')}
+    ''';
+
+    final results = await db.rawQuery(sql, whereArgs);
+    if (results.isEmpty) return 0;
+    return (results.first['total'] as int?) ?? 0;
   }
 
   // --- Bookmark CRUD ---

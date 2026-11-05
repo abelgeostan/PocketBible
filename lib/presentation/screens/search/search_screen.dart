@@ -128,7 +128,7 @@ class _SearchScreenState extends State<SearchScreen> {
       label: Text(label),
       selected: isSelected,
       onSelected: (_) => onSelected(),
-      selectedColor: accentColor.withOpacity(0.15),
+      selectedColor: accentColor.withValues(alpha: 0.15),
       backgroundColor: surfaceColor,
       side: BorderSide(color: isSelected ? accentColor : lineColor),
       labelStyle: TextStyle(
@@ -157,7 +157,7 @@ class _SearchScreenState extends State<SearchScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.search, size: 48, color: mutedColor.withOpacity(0.5)),
+            Icon(Icons.search, size: 48, color: mutedColor.withValues(alpha: 0.5)),
             const SizedBox(height: 12),
             Text(
               'തിരയാൻ മലയാളത്തിൽ വാക്ക് നൽകുക',
@@ -177,13 +177,123 @@ class _SearchScreenState extends State<SearchScreen> {
       );
     }
 
-    return ListView.separated(
-      itemCount: search.results.length,
-      separatorBuilder: (_, __) => Divider(height: 1, color: lineColor),
-      itemBuilder: (context, index) {
-        final verse = search.results[index];
-        return _buildResultTile(context, verse, search.query, isDark, textColor, mutedColor, accentColor);
-      },
+    final showFooter = search.hasMore || (search.results.isNotEmpty && search.totalCount > SearchProvider.pageSize);
+    final totalItems = search.results.length + (showFooter ? 1 : 0);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Summary header showing match counts
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          color: surface2Color.withValues(alpha: 0.4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                search.hasMore
+                    ? '${search.results.length} / ${search.totalCount} ഫലങ്ങൾ കാണിക്കുന്നു'
+                    : 'ആകെ ${search.totalCount} ഫലങ്ങൾ',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: mutedColor,
+                ),
+              ),
+              if (search.hasMore)
+                Text(
+                  '+${search.totalCount - search.results.length} ബാക്കി',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: accentColor,
+                  ),
+                ),
+            ],
+          ),
+        ),
+        Divider(height: 1, color: lineColor),
+
+        // Verses list with Show More button at the bottom
+        Expanded(
+          child: ListView.separated(
+            itemCount: totalItems,
+            separatorBuilder: (_, __) => Divider(height: 1, color: lineColor),
+            itemBuilder: (context, index) {
+              if (index < search.results.length) {
+                final verse = search.results[index];
+                return _buildResultTile(context, verse, search.query, isDark, textColor, mutedColor, accentColor);
+              }
+
+              // Footer: Show More button or End of Results
+              if (search.hasMore) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                  child: Center(
+                    child: search.isLoadingMore
+                        ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: accentColor,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                'കൂടുതൽ ഫലങ്ങൾ ലോഡ് ചെയ്യുന്നു...',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: mutedColor,
+                                ),
+                              ),
+                            ],
+                          )
+                        : OutlinedButton.icon(
+                            onPressed: () => search.loadMore(),
+                            icon: Icon(Icons.expand_more_rounded, size: 20, color: accentColor),
+                            label: Text(
+                              'കൂടുതൽ ഫലങ്ങൾ കാണുക (Show More)',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: accentColor,
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              side: BorderSide(color: accentColor.withValues(alpha: 0.5)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              backgroundColor: surface2Color,
+                            ),
+                          ),
+                  ),
+                );
+              }
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Center(
+                  child: Text(
+                    'എല്ലാ ഫലങ്ങളും കാണിച്ചു (ആകെ ${search.totalCount})',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: mutedColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
