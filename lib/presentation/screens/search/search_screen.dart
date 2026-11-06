@@ -37,7 +37,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('വേദപുസ്തകത്തിൽ തിരയുക'),
+        title: const Text('വേദപുസ്തകത്തിൽ തിരയുക (Search)'),
       ),
       body: Column(
         children: [
@@ -154,25 +154,65 @@ class _SearchScreenState extends State<SearchScreen> {
 
     if (!search.hasSearched) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.search, size: 48, color: mutedColor.withValues(alpha: 0.5)),
-            const SizedBox(height: 12),
-            Text(
-              'തിരയാൻ മലയാളത്തിൽ വാക്ക് നൽകുക',
-              style: TextStyle(color: mutedColor, fontSize: 15),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.search, size: 52, color: mutedColor.withValues(alpha: 0.5)),
+              const SizedBox(height: 16),
+              Text(
+                'തിരയാൻ മലയാളത്തിൽ വാക്ക് നൽകുക',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Type Malayalam words to search the Bible',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: mutedColor,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     if (search.results.isEmpty) {
       return Center(
-        child: Text(
-          AppConstants.noResults,
-          style: TextStyle(color: mutedColor, fontSize: 16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.search_off_rounded, size: 52, color: mutedColor.withValues(alpha: 0.5)),
+              const SizedBox(height: 14),
+              Text(
+                'ഫലം കണ്ടെത്തിയില്ല',
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'No results found for "${search.query}"',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: mutedColor,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -192,8 +232,8 @@ class _SearchScreenState extends State<SearchScreen> {
             children: [
               Text(
                 search.hasMore
-                    ? '${search.results.length} / ${search.totalCount} ഫലങ്ങൾ കാണിക്കുന്നു'
-                    : 'ആകെ ${search.totalCount} ഫലങ്ങൾ',
+                    ? '${search.results.length} of ${search.totalCount} results (${search.results.length} / ${search.totalCount} ഫലങ്ങൾ)'
+                    : 'Total ${search.totalCount} results (ആകെ ${search.totalCount} ഫലങ്ങൾ)',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -202,7 +242,7 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
               if (search.hasMore)
                 Text(
-                  '+${search.totalCount - search.results.length} ബാക്കി',
+                  '+${search.totalCount - search.results.length} more (ബാക്കി)',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -244,7 +284,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               ),
                               const SizedBox(width: 10),
                               Text(
-                                'കൂടുതൽ ഫലങ്ങൾ ലോഡ് ചെയ്യുന്നു...',
+                                'കൂടുതൽ ഫലങ്ങൾ ലോഡ് ചെയ്യുന്നു... (Loading more...)',
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
@@ -281,7 +321,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 child: Center(
                   child: Text(
-                    'എല്ലാ ഫലങ്ങളും കാണിച്ചു (ആകെ ${search.totalCount})',
+                    'എല്ലാ ഫലങ്ങളും കാണിച്ചു • All ${search.totalCount} results shown',
                     style: TextStyle(
                       fontSize: 12,
                       color: mutedColor,
