@@ -563,4 +563,172 @@ class BibleDatabase {
     final db = await database;
     await db.delete('reading_history');
   }
+  // --- Data Export & Import Backup ---
+
+  Future<Map<String, dynamic>> getAllUserData() async {
+    final db = await database;
+    final bookmarks = await db.query(
+      'bookmarks',
+      columns: ['book_code', 'chapter', 'verse', 'created_at'],
+      orderBy: 'created_at DESC',
+    );
+    final highlights = await db.query(
+      'highlights',
+      columns: ['book_code', 'chapter', 'verse', 'color', 'created_at'],
+      orderBy: 'created_at DESC',
+    );
+    final notes = await db.query(
+      'notes',
+      columns: ['book_code', 'chapter', 'verse', 'note_text', 'created_at', 'updated_at'],
+      orderBy: 'updated_at DESC',
+    );
+    final history = await db.query(
+      'reading_history',
+      columns: ['book_code', 'book_name', 'chapter', 'timestamp'],
+      orderBy: 'timestamp DESC',
+    );
+
+    return {
+      'bookmarks': bookmarks,
+      'highlights': highlights,
+      'notes': notes,
+      'reading_history': history,
+    };
+  }
+
+  Future<Map<String, int>> importBackupData(Map<String, dynamic> data) async {
+    final db = await database;
+    int importedBookmarks = 0;
+    int importedHighlights = 0;
+    int importedNotes = 0;
+    int importedHistory = 0;
+
+    await db.transaction((txn) async {
+      // 1. Bookmarks
+      if (data['bookmarks'] is List) {
+        for (final item in data['bookmarks']) {
+          if (item is Map) {
+            final bookCode = item['book_code']?.toString();
+            final chapter = int.tryParse(item['chapter']?.toString() ?? '');
+            final verse = int.tryParse(item['verse']?.toString() ?? '');
+            final createdAt = int.tryParse(item['created_at']?.toString() ?? '') ??
+                DateTime.now().millisecondsSinceEpoch;
+
+            if (bookCode != null && bookCode.isNotEmpty && chapter != null && verse != null) {
+              await txn.delete(
+                'bookmarks',
+                where: 'book_code = ? AND chapter = ? AND verse = ?',
+                whereArgs: [bookCode, chapter, verse],
+              );
+              await txn.insert('bookmarks', {
+                'book_code': bookCode,
+                'chapter': chapter,
+                'verse': verse,
+                'created_at': createdAt,
+              });
+              importedBookmarks++;
+            }
+          }
+        }
+      }
+
+      // 2. Highlights
+      if (data['highlights'] is List) {
+        for (final item in data['highlights']) {
+          if (item is Map) {
+            final bookCode = item['book_code']?.toString();
+            final chapter = int.tryParse(item['chapter']?.toString() ?? '');
+            final verse = int.tryParse(item['verse']?.toString() ?? '');
+            final color = item['color']?.toString() ?? 'yellow';
+            final createdAt = int.tryParse(item['created_at']?.toString() ?? '') ??
+                DateTime.now().millisecondsSinceEpoch;
+
+            if (bookCode != null && bookCode.isNotEmpty && chapter != null && verse != null) {
+              await txn.delete(
+                'highlights',
+                where: 'book_code = ? AND chapter = ? AND verse = ?',
+                whereArgs: [bookCode, chapter, verse],
+              );
+              await txn.insert('highlights', {
+                'book_code': bookCode,
+                'chapter': chapter,
+                'verse': verse,
+                'color': color,
+                'created_at': createdAt,
+              });
+              importedHighlights++;
+            }
+          }
+        }
+      }
+
+      // 3. Notes
+      if (data['notes'] is List) {
+        for (final item in data['notes']) {
+          if (item is Map) {
+            final bookCode = item['book_code']?.toString();
+            final chapter = int.tryParse(item['chapter']?.toString() ?? '');
+            final verse = int.tryParse(item['verse']?.toString() ?? '');
+            final noteText = (item['note_text'] ?? item['content'])?.toString() ?? '';
+            final createdAt = int.tryParse(item['created_at']?.toString() ?? '') ??
+                DateTime.now().millisecondsSinceEpoch;
+            final updatedAt = int.tryParse(item['updated_at']?.toString() ?? '') ?? createdAt;
+
+            if (bookCode != null && bookCode.isNotEmpty && chapter != null && verse != null && noteText.trim().isNotEmpty) {
+              await txn.delete(
+                'notes',
+                where: 'book_code = ? AND chapter = ? AND verse = ?',
+                whereArgs: [bookCode, chapter, verse],
+              );
+              await txn.insert('notes', {
+                'book_code': bookCode,
+                'chapter': chapter,
+                'verse': verse,
+                'note_text': noteText,
+                'created_at': createdAt,
+                'updated_at': updatedAt,
+              });
+              importedNotes++;
+            }
+          }
+        }
+      }
+
+      // 4. Reading History
+      if (data['reading_history'] is List) {
+        for (final item in data['reading_history']) {
+          if (item is Map) {
+            final bookCode = item['book_code']?.toString();
+            final bookName = item['book_name']?.toString() ?? '';
+            final chapter = int.tryParse(item['chapter']?.toString() ?? '');
+            final timestamp = int.tryParse(item['timestamp']?.toString() ?? '') ??
+                DateTime.now().millisecondsSinceEpoch;
+
+            if (bookCode != null && bookCode.isNotEmpty && chapter != null) {
+              await txn.delete(
+                'reading_history',
+                where: 'book_code = ? AND chapter = ?',
+                whereArgs: [bookCode, chapter],
+              );
+              await txn.insert('reading_history', {
+                'book_code': bookCode,
+                'book_name': bookName,
+                'chapter': chapter,
+                'timestamp': timestamp,
+              });
+              importedHistory++;
+            }
+          }
+        }
+      }
+    });
+
+    return {
+      'bookmarks': importedBookmarks,
+      'highlights': importedHighlights,
+      'notes': importedNotes,
+      'reading_history': importedHistory,
+    };
+  }
 }
+

@@ -1,0 +1,172 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import '../../data/database/bible_database.dart';
+import '../constants/app_constants.dart';
+
+class BackupResult {
+  final bool success;
+  final String? message;
+  final int bookmarks;
+  final int highlights;
+  final int notes;
+  final int history;
+
+  const BackupResult({
+    required this.success,
+    this.message,
+    this.bookmarks = 0,
+    this.highlights = 0,
+    this.notes = 0,
+    this.history = 0,
+  });
+
+  int get totalItems => bookmarks + highlights + notes;
+}
+
+class BackupService {
+  BackupService._internal();
+  static final BackupService instance = BackupService._internal();
+
+  final BibleDatabase _db = BibleDatabase.instance;
+
+  /// Exports all bookmarks, highlights, notes, and reading history to a JSON file
+  /// and triggers the native OS Share dialog (Save to Drive, Email, Files, etc.)
+  Future<BackupResult> exportUserData() async {
+    try {
+      final rawData = await _db.getAllUserData();
+
+      final bookmarks = rawData['bookmarks'] as List? ?? [];
+      final highlights = rawData['highlights'] as List? ?? [];
+      final notes = rawData['notes'] as List? ?? [];
+      final history = rawData['reading_history'] as List? ?? [];
+
+      final now = DateTime.now();
+      final backupPayload = {
+        'app': AppConstants.appName,
+        'app_version': AppConstants.appVersion,
+        'export_timestamp': now.toIso8601String(),
+        'data': {
+          'bookmarks': bookmarks,
+          'highlights': highlights,
+          'notes': notes,
+          'reading_history': history,
+        },
+      };
+
+      final jsonContent = const JsonEncoder.withIndent('  ').convert(backupPayload);
+
+      final dateStr = '${now.year}'
+          '${now.month.toString().padLeft(2, '0')}'
+          '${now.day.toString().padLeft(2, '0')}_'
+          '${now.hour.toString().padLeft(2, '0')}'
+          '${now.minute.toString().padLeft(2, '0')}';
+
+      final fileName = 'pocketbible_backup_$dateStr.json';
+
+      final tempDir = await getTemporaryDirectory();
+      final backupFile = File('${tempDir.path}/$fileName');
+      await backupFile.writeAsString(jsonContent, flush: true);
+
+      final xFile = XFile(
+        backupFile.path,
+        mimeType: 'application/json',
+        name: fileName,
+      );
+
+      final shareResult = await Share.shareXFiles(
+        [xFile],
+        subject: 'PocketBible Backup ($fileName)',
+        text: 'PocketBible user data backup file. You can import this into PocketBible on any device.',
+      );
+
+      return BackupResult(
+        success: shareResult.status != ShareResultStatus.unavailable,
+        bookmarks: bookmarks.length,
+        highlights: highlights.length,
+        notes: notes.length,
+        history: history.length,
+      );
+    } catch (e) {
+      debugPrint('BackupService: Export error: $e');
+      return BackupResult(
+        success: false,
+        message: e.toString(),
+      );
+    }
+  }
+
+  /// Prompts user to pick a backup .json file and imports bookmarks, highlights, notes, and history
+  Future<BackupResult?> importUserData() async {
+    try {
+      final pickerResult = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+        allowMultiple: false,
+        withData: true,
+      );
+
+      if (pickerResult == null || pickerResult.files.isEmpty) {
+        return null; // User cancelled
+      }
+
+      final file = pickerResult.files.single;
+      String jsonString;
+
+      if (file.bytes != null && file.bytes!.isNotEmpty) {
+        jsonString = utf8.decode(file.bytes!);
+      } else if (file.path != null && file.path!.isNotEmpty) {
+        jsonString = await File(file.path!).readAsString();
+      } else {
+        return const BackupResult(
+          success: false,
+          message: 'Could not read file data',
+        );
+      }
+
+      dynamic decoded;
+      try {
+        decoded = json.decode(jsonString);
+      } catch (e) {
+        return const BackupResult(
+          success: false,
+          message: 'Invalid JSON file format',
+        );
+      }
+
+      if (decoded is! Map) {
+        return const BackupResult(
+          success: false,
+          message: 'Unsupported backup format',
+        );
+      }
+
+      final dataMap = decoded['data'] is Map ? decoded['data'] as Map : decoded;
+      final typedData = <String, dynamic>{
+        'bookmarks': dataMap['bookmarks'],
+        'highlights': dataMap['highlights'],
+        'notes': dataMap['notes'],
+        'reading_history': dataMap['reading_history'],
+      };
+
+      final counts = await _db.importBackupData(typedData);
+
+      return BackupResult(
+        success: true,
+        bookmarks: counts['bookmarks'] ?? 0,
+        highlights: counts['highlights'] ?? 0,
+        notes: counts['notes'] ?? 0,
+        history: counts['reading_history'] ?? 0,
+      );
+    } catch (e) {
+      debugPrint('BackupService: Import error: $e');
+      return BackupResult(
+        success: false,
+        message: e.toString(),
+      );
+    }
+  }
+}

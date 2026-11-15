@@ -99,6 +99,11 @@ class NotificationProvider extends ChangeNotifier {
     await _reschedule();
   }
 
+  Future<void> rescheduleAfterPermissionGranted() async {
+    await _reschedule();
+    notifyListeners();
+  }
+
   Future<void> sendTestNotification({required bool isMorning}) async {
     await NotificationService.instance.sendTestNotification(isMorning: isMorning);
   }

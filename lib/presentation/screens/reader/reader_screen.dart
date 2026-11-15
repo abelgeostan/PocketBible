@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../data/models/bible_book.dart';
 import '../../../data/models/bible_verse.dart';
 import '../../../data/repositories/bible_repository.dart';
@@ -52,6 +53,15 @@ class _ReaderScreenState extends State<ReaderScreen> {
     if (nav.books.isNotEmpty) {
       _initChapters(nav);
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Future.delayed(const Duration(milliseconds: 1200), () {
+        if (mounted) {
+          NotificationService.instance.checkAndPromptNotificationPermission(context);
+        }
+      });
+    });
   }
 
   void _initChapters(BibleNavigationProvider nav) {

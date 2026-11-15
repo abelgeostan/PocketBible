@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/services/backup_service.dart';
+import '../../../providers/bookmarks_provider.dart';
+import '../../../providers/highlights_provider.dart';
+import '../../../providers/notes_provider.dart';
 import '../../../providers/notification_provider.dart';
 import '../../../providers/reader_settings_provider.dart';
 import '../../../providers/theme_provider.dart';
@@ -303,6 +307,58 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
 
+          const SizedBox(height: 24),
+
+          // Section: Data Backup & Restore
+          _buildSectionTitle('ഡാറ്റ ബാക്കപ്പും പുനഃസ്ഥാപനവും (Backup & Restore)', accentColor),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.upload_file_rounded, color: accentColor, size: 20),
+                  ),
+                  title: Text(
+                    'ഡാറ്റ എക്സ്പോർട്ട് ചെയ്യുക (Export Backup)',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textColor),
+                  ),
+                  subtitle: Text(
+                    'Download or share a backup of your bookmarks, highlights, and notes',
+                    style: TextStyle(fontSize: 12, color: mutedColor),
+                  ),
+                  trailing: Icon(Icons.chevron_right_rounded, color: mutedColor),
+                  onTap: () => _handleExport(context),
+                ),
+                Divider(height: 1, color: lineColor),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.download_rounded, color: accentColor, size: 20),
+                  ),
+                  title: Text(
+                    'ഡാറ്റ ഇംപോർട്ട് ചെയ്യുക (Import Backup)',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textColor),
+                  ),
+                  subtitle: Text(
+                    'Restore saved bookmarks, highlights, and notes from a backup file',
+                    style: TextStyle(fontSize: 12, color: mutedColor),
+                  ),
+                  trailing: Icon(Icons.chevron_right_rounded, color: mutedColor),
+                  onTap: () => _handleImport(context),
+                ),
+              ],
+            ),
+          ),
+
           const SizedBox(height: 40),
         ],
       ),
@@ -329,4 +385,132 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
+  Future<void> _handleExport(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      const SnackBar(
+        content: Text('ബാക്കപ്പ് ഫയൽ തയ്യാറാക്കുന്നു... (Preparing backup...)'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+
+    final result = await BackupService.instance.exportUserData();
+    if (result.success) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            'ബാക്കപ്പ് തയ്യാറായി (${result.bookmarks} ബുക്ക്‌മാർക്കുകൾ, ${result.highlights} ഹൈലൈറ്റുകൾ, ${result.notes} കുറിപ്പുകൾ)',
+          ),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } else if (result.message != null && result.message!.isNotEmpty) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('എക്സ്പോർട്ട് പരാജയപ്പെട്ടു: ${result.message}'),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleImport(BuildContext context) async {
+    final result = await BackupService.instance.importUserData();
+    if (result == null) return; // User cancelled
+
+    if (!context.mounted) return;
+
+    if (!result.success) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('ഇംപോർട്ട് പരാജയപ്പെട്ടു (Import Failed)'),
+          content: Text(result.message ?? 'ബാക്കപ്പ് ഫയൽ വായിക്കാൻ കഴിഞ്ഞില്ല.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('ശരി (OK)'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    // Refresh all data providers immediately
+    context.read<BookmarksProvider>().loadBookmarks();
+    context.read<HighlightsProvider>().loadHighlights();
+    context.read<NotesProvider>().loadNotes();
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final mutedColor = isDark ? AppColors.darkMuted : AppColors.lightMuted;
+    final accentColor = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.check_circle_rounded, color: Colors.green.shade600, size: 26),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'ഇംപോർട്ട് പൂർത്തിയായി',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: textColor),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'നിങ്ങളുടെ വിവരങ്ങൾ വിജയകരമായി പുനഃസ്ഥാപിച്ചു (Backup successfully restored):',
+              style: TextStyle(fontSize: 13, color: mutedColor),
+            ),
+            const SizedBox(height: 14),
+            _buildStatRow('🔖 ബുക്ക്‌മാർക്കുകൾ (Bookmarks)', result.bookmarks, textColor),
+            const SizedBox(height: 6),
+            _buildStatRow('🖍️ ഹൈലൈറ്റുകൾ (Highlights)', result.highlights, textColor),
+            const SizedBox(height: 6),
+            _buildStatRow('📝 കുറിപ്പുകൾ (Notes)', result.notes, textColor),
+            if (result.history > 0) ...[
+              const SizedBox(height: 6),
+              _buildStatRow('🕒 വായനാ ചരിത്രം (History)', result.history, textColor),
+            ],
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: accentColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('ശരി (OK)'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatRow(String label, int count, Color textColor) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: TextStyle(fontSize: 13, color: textColor)),
+        Text(
+          '$count',
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: textColor),
+        ),
+      ],
+    );
+  }
 }
+

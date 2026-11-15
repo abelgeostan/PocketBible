@@ -1,6 +1,10 @@
 import 'dart:math';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../constants/app_colors.dart';
+import '../../providers/notification_provider.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -223,6 +227,170 @@ class NotificationService {
     final payload = _pendingPayload;
     _pendingPayload = null;
     return payload;
+  }
+
+  Future<bool> areNotificationsEnabled() async {
+    final androidImplementation = _notificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+    if (androidImplementation != null) {
+      final enabled = await androidImplementation.areNotificationsEnabled();
+      return enabled ?? false;
+    }
+    return true;
+  }
+
+  /// Prompts new users and updating users to allow notifications for Daily Verse & Reading Reminders
+  Future<void> checkAndPromptNotificationPermission(BuildContext context) async {
+    final enabled = await areNotificationsEnabled();
+    final prefs = await SharedPreferences.getInstance();
+    const promptKey = 'bible_notification_prompt_v1_5_2';
+    final alreadyPrompted = prefs.getBool(promptKey) ?? false;
+
+    if (enabled) {
+      if (!alreadyPrompted) {
+        await prefs.setBool(promptKey, true);
+      }
+      return;
+    }
+
+    if (alreadyPrompted) return;
+
+    if (!context.mounted) return;
+
+    await prefs.setBool(promptKey, true);
+
+    final shouldRequest = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+        final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+        final mutedColor = isDark ? AppColors.darkMuted : AppColors.lightMuted;
+        final accentColor = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+        final lineColor = isDark ? AppColors.darkLine : AppColors.lightLine;
+
+        return AlertDialog(
+          backgroundColor: surfaceColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: lineColor),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.notifications_active_rounded, color: accentColor, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'തിരുവചന അറിയിപ്പുകൾ',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: textColor),
+                    ),
+                    Text(
+                      'Daily Scripture Reminders',
+                      style: TextStyle(fontSize: 12, color: mutedColor),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'ദിവസവും രാവിലെയും വൈകുന്നേരവും തിരുവചന സന്ദേശങ്ങൾ ലഭിക്കാൻ അറിയിപ്പുകൾ (Notifications) അനുവദിക്കൂ:',
+                style: TextStyle(fontSize: 13, height: 1.5, color: textColor),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface2 : AppColors.lightSurface2,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: lineColor),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.wb_sunny_outlined, size: 18, color: accentColor),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '7:00 AM • പ്രഭാത വചനം (Daily Verse)',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textColor),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(Icons.nights_stay_outlined, size: 18, color: accentColor),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '7:00 PM • സായാഹ്ന വായന (Daily Bread)',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textColor),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Allow notifications to receive uplifting daily verses and quiet reading reminders.',
+                style: TextStyle(fontSize: 12, color: mutedColor, height: 1.4),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text(
+                'പിന്നീട് (Later)',
+                style: TextStyle(color: mutedColor, fontSize: 13),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: accentColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              ),
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text(
+                'അനുവദിക്കുക (Allow)',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldRequest == true) {
+      final granted = await requestPermissions();
+      if (granted && context.mounted) {
+        final notif = context.read<NotificationProvider>();
+        await notif.rescheduleAfterPermissionGranted();
+      }
+    }
   }
 
   Future<bool> requestPermissions() async {
