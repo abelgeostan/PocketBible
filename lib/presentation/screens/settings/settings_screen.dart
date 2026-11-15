@@ -311,51 +311,165 @@ class SettingsScreen extends StatelessWidget {
 
           // Section: Data Backup & Restore
           _buildSectionTitle('ഡാറ്റ ബാക്കപ്പും പുനഃസ്ഥാപനവും (Backup & Restore)', accentColor),
+
+          // 1. Export / Download Backup Card
           Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: accentColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8),
+            margin: const EdgeInsets.only(bottom: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: BorderSide(color: lineColor),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: accentColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(Icons.file_download_rounded, color: accentColor, size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'ഡാറ്റ എക്സ്പോർട്ട് ചെയ്യുക',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: textColor,
+                              ),
+                            ),
+                            Text(
+                              'Export / Download Backup',
+                              style: TextStyle(fontSize: 12, color: mutedColor),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'നിങ്ങളുടെ ബുക്ക്‌മാർക്കുകൾ, ഹൈലൈറ്റുകൾ, കുറിപ്പുകൾ എന്നിവ ഫോണിലേക്ക് ഫയലായി ഡൗൺലോഡ് ചെയ്യുക.',
+                    style: TextStyle(fontSize: 12.5, height: 1.4, color: textColor),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Save your bookmarks, highlights, and notes as a backup file on your device.',
+                    style: TextStyle(fontSize: 11.5, color: mutedColor),
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: accentColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      icon: const Icon(Icons.download_rounded, size: 20),
+                      label: const Text(
+                        'ബാക്കപ്പ് ഡൗൺലോഡ് ചെയ്യുക (Download Backup)',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                      ),
+                      onPressed: () => _handleExport(context),
                     ),
-                    child: Icon(Icons.upload_file_rounded, color: accentColor, size: 20),
                   ),
-                  title: Text(
-                    'ഡാറ്റ എക്സ്പോർട്ട് ചെയ്യുക (Export Backup)',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textColor),
+                ],
+              ),
+            ),
+          ),
+
+          // 2. Import / Restore Backup Card
+          Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: BorderSide(color: lineColor),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: accentColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(Icons.file_upload_rounded, color: accentColor, size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'ഡാറ്റ ഇംപോർട്ട് ചെയ്യുക',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: textColor,
+                              ),
+                            ),
+                            Text(
+                              'Import / Restore Backup',
+                              style: TextStyle(fontSize: 12, color: mutedColor),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  subtitle: Text(
-                    'Download or share a backup of your bookmarks, highlights, and notes',
-                    style: TextStyle(fontSize: 12, color: mutedColor),
+                  const SizedBox(height: 10),
+                  Text(
+                    'നേരത്തെ ഡൗൺലോഡ് ചെയ്ത ബാക്കപ്പ് ഫയൽ തിരഞ്ഞെടുത്ത് വിവരങ്ങൾ ആപ്പിലേക്ക് പുനഃസ്ഥാപിക്കുക.',
+                    style: TextStyle(fontSize: 12.5, height: 1.4, color: textColor),
                   ),
-                  trailing: Icon(Icons.chevron_right_rounded, color: mutedColor),
-                  onTap: () => _handleExport(context),
-                ),
-                Divider(height: 1, color: lineColor),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: accentColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Restore your saved bookmarks, highlights, and notes from a backup file.',
+                    style: TextStyle(fontSize: 11.5, color: mutedColor),
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: BorderSide(color: accentColor, width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      icon: Icon(Icons.folder_open_rounded, size: 20, color: accentColor),
+                      label: Text(
+                        'ഫയൽ തിരഞ്ഞെടുക്കുക (Select Backup File)',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: accentColor,
+                        ),
+                      ),
+                      onPressed: () => _handleImport(context),
                     ),
-                    child: Icon(Icons.download_rounded, color: accentColor, size: 20),
                   ),
-                  title: Text(
-                    'ഡാറ്റ ഇംപോർട്ട് ചെയ്യുക (Import Backup)',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textColor),
-                  ),
-                  subtitle: Text(
-                    'Restore saved bookmarks, highlights, and notes from a backup file',
-                    style: TextStyle(fontSize: 12, color: mutedColor),
-                  ),
-                  trailing: Icon(Icons.chevron_right_rounded, color: mutedColor),
-                  onTap: () => _handleImport(context),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
@@ -385,6 +499,7 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
+
   Future<void> _handleExport(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
     messenger.showSnackBar(
@@ -395,19 +510,98 @@ class SettingsScreen extends StatelessWidget {
     );
 
     final result = await BackupService.instance.exportUserData();
+    if (!context.mounted) return;
+
     if (result.success) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            'ബാക്കപ്പ് തയ്യാറായി (${result.bookmarks} ബുക്ക്‌മാർക്കുകൾ, ${result.highlights} ഹൈലൈറ്റുകൾ, ${result.notes} കുറിപ്പുകൾ)',
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+      final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+      final mutedColor = isDark ? AppColors.darkMuted : AppColors.lightMuted;
+      final accentColor = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+      final lineColor = isDark ? AppColors.darkLine : AppColors.lightLine;
+
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: surfaceColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: lineColor),
           ),
-          duration: const Duration(seconds: 3),
+          title: Row(
+            children: [
+              Icon(Icons.check_circle_rounded, color: Colors.green.shade600, size: 26),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'ബാക്കപ്പ് ഡൗൺലോഡ് ചെയ്തു',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: textColor),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'ബാക്കപ്പ് ഫയൽ നിങ്ങളുടെ ഫോണിൽ വിജയകരമായി സേവ് ചെയ്തു (Backup downloaded successfully):',
+                style: TextStyle(fontSize: 13, color: mutedColor, height: 1.4),
+              ),
+              if (result.filePath != null) ...[
+                const SizedBox(height: 10),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkSurface2 : AppColors.lightSurface2,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: lineColor),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.folder_outlined, size: 18, color: accentColor),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          result.filePath!,
+                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: textColor),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 14),
+              _buildStatRow('🔖 ബുക്ക്‌മാർക്കുകൾ (Bookmarks)', result.bookmarks, textColor),
+              const SizedBox(height: 6),
+              _buildStatRow('🖍️ ഹൈലൈറ്റുകൾ (Highlights)', result.highlights, textColor),
+              const SizedBox(height: 6),
+              _buildStatRow('📝 കുറിപ്പുകൾ (Notes)', result.notes, textColor),
+              if (result.history > 0) ...[
+                const SizedBox(height: 6),
+                _buildStatRow('🕒 വായനാ ചരിത്രം (History)', result.history, textColor),
+              ],
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: accentColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('ശരി (OK)'),
+            ),
+          ],
         ),
       );
-    } else if (result.message != null && result.message!.isNotEmpty) {
+    } else if (result.message != null && result.message != 'Download cancelled') {
       messenger.showSnackBar(
         SnackBar(
-          content: Text('എക്സ്പോർട്ട് പരാജയപ്പെട്ടു: ${result.message}'),
+          content: Text('ഡൗൺലോഡ് പരാജയപ്പെട്ടു: ${result.message}'),
           backgroundColor: Colors.red.shade700,
         ),
       );
@@ -447,12 +641,16 @@ class SettingsScreen extends StatelessWidget {
     final textColor = isDark ? AppColors.darkText : AppColors.lightText;
     final mutedColor = isDark ? AppColors.darkMuted : AppColors.lightMuted;
     final accentColor = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+    final lineColor = isDark ? AppColors.darkLine : AppColors.lightLine;
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: surfaceColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: lineColor),
+        ),
         title: Row(
           children: [
             Icon(Icons.check_circle_rounded, color: Colors.green.shade600, size: 26),
@@ -473,6 +671,13 @@ class SettingsScreen extends StatelessWidget {
               'നിങ്ങളുടെ വിവരങ്ങൾ വിജയകരമായി പുനഃസ്ഥാപിച്ചു (Backup successfully restored):',
               style: TextStyle(fontSize: 13, color: mutedColor),
             ),
+            if (result.filePath != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                'File: ${result.filePath}',
+                style: TextStyle(fontSize: 11.5, color: accentColor, fontWeight: FontWeight.w600),
+              ),
+            ],
             const SizedBox(height: 14),
             _buildStatRow('🔖 ബുക്ക്‌മാർക്കുകൾ (Bookmarks)', result.bookmarks, textColor),
             const SizedBox(height: 6),
@@ -513,4 +718,3 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 }
-

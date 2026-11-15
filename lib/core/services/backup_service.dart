@@ -2,14 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../data/database/bible_database.dart';
 import '../constants/app_constants.dart';
 
 class BackupResult {
   final bool success;
   final String? message;
+  final String? filePath;
   final int bookmarks;
   final int highlights;
   final int notes;
@@ -18,6 +17,7 @@ class BackupResult {
   const BackupResult({
     required this.success,
     this.message,
+    this.filePath,
     this.bookmarks = 0,
     this.highlights = 0,
     this.notes = 0,
@@ -34,7 +34,7 @@ class BackupService {
   final BibleDatabase _db = BibleDatabase.instance;
 
   /// Exports all bookmarks, highlights, notes, and reading history to a JSON file
-  /// and triggers the native OS Share dialog (Save to Drive, Email, Files, etc.)
+  /// and directly downloads / saves it to the device's Downloads directory.
   Future<BackupResult> exportUserData() async {
     try {
       final rawData = await _db.getAllUserData();
@@ -66,25 +66,45 @@ class BackupService {
           '${now.minute.toString().padLeft(2, '0')}';
 
       final fileName = 'pocketbible_backup_$dateStr.json';
+      final fileBytes = Uint8List.fromList(utf8.encode(jsonContent));
 
-      final tempDir = await getTemporaryDirectory();
-      final backupFile = File('${tempDir.path}/$fileName');
-      await backupFile.writeAsString(jsonContent, flush: true);
+      String? savedPath;
 
-      final xFile = XFile(
-        backupFile.path,
-        mimeType: 'application/json',
-        name: fileName,
-      );
+      // 1. First attempt: Direct save to Android standard Downloads directory
+      if (Platform.isAndroid) {
+        try {
+          final downloadDir = Directory('/storage/emulated/0/Download');
+          if (await downloadDir.exists()) {
+            final targetFile = File('${downloadDir.path}/$fileName');
+            await targetFile.writeAsString(jsonContent, flush: true);
+            savedPath = targetFile.path;
+          }
+        } catch (e) {
+          debugPrint('BackupService: Direct write to /storage/emulated/0/Download failed: $e');
+        }
+      }
 
-      final shareResult = await Share.shareXFiles(
-        [xFile],
-        subject: 'PocketBible Backup ($fileName)',
-        text: 'PocketBible user data backup file. You can import this into PocketBible on any device.',
-      );
+      // 2. If direct write didn't succeed (scoped storage on newer Android, iOS, desktop):
+      if (savedPath == null) {
+        savedPath = await FilePicker.platform.saveFile(
+          dialogTitle: 'Save PocketBible Backup',
+          fileName: fileName,
+          type: FileType.custom,
+          allowedExtensions: ['json'],
+          bytes: fileBytes,
+        );
+      }
+
+      if (savedPath == null) {
+        return const BackupResult(
+          success: false,
+          message: 'Download cancelled',
+        );
+      }
 
       return BackupResult(
-        success: shareResult.status != ShareResultStatus.unavailable,
+        success: true,
+        filePath: savedPath,
         bookmarks: bookmarks.length,
         highlights: highlights.length,
         notes: notes.length,
@@ -156,6 +176,7 @@ class BackupService {
 
       return BackupResult(
         success: true,
+        filePath: file.name,
         bookmarks: counts['bookmarks'] ?? 0,
         highlights: counts['highlights'] ?? 0,
         notes: counts['notes'] ?? 0,
