@@ -244,7 +244,7 @@ class NotificationService {
   Future<void> checkAndPromptNotificationPermission(BuildContext context) async {
     final enabled = await areNotificationsEnabled();
     final prefs = await SharedPreferences.getInstance();
-    const promptKey = 'bible_notification_prompt_v1_5_2';
+    const promptKey = 'bible_notification_bottom_prompt_v1';
     final alreadyPrompted = prefs.getBool(promptKey) ?? false;
 
     if (enabled) {
@@ -260,9 +260,10 @@ class NotificationService {
 
     await prefs.setBool(promptKey, true);
 
-    final shouldRequest = await showDialog<bool>(
+    final shouldRequest = await showModalBottomSheet<bool>(
       context: context,
-      barrierDismissible: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (ctx) {
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
         final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
@@ -270,80 +271,143 @@ class NotificationService {
         final mutedColor = isDark ? AppColors.darkMuted : AppColors.lightMuted;
         final accentColor = isDark ? AppColors.darkAccent : AppColors.lightAccent;
         final lineColor = isDark ? AppColors.darkLine : AppColors.lightLine;
+        final surface2Color = isDark ? AppColors.darkSurface2 : AppColors.lightSurface2;
 
-        return AlertDialog(
-          backgroundColor: surfaceColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: lineColor),
-          ),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.notifications_active_rounded, color: accentColor, size: 24),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'തിരുവചന അറിയിപ്പുകൾ',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: textColor),
-                    ),
-                    Text(
-                      'Daily Scripture Reminders',
-                      style: TextStyle(fontSize: 12, color: mutedColor),
-                    ),
-                  ],
-                ),
+        return Container(
+          decoration: BoxDecoration(
+            color: surfaceColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border(
+              top: BorderSide(color: lineColor),
+              left: BorderSide(color: lineColor),
+              right: BorderSide(color: lineColor),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.25),
+                blurRadius: 20,
+                offset: const Offset(0, -4),
               ),
             ],
           ),
-          content: Column(
+          padding: EdgeInsets.fromLTRB(
+            20,
+            12,
+            20,
+            MediaQuery.of(ctx).padding.bottom + 20,
+          ),
+          child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                'ദിവസവും രാവിലെയും വൈകുന്നേരവും തിരുവചന സന്ദേശങ്ങൾ ലഭിക്കാൻ അറിയിപ്പുകൾ (Notifications) അനുവദിക്കൂ:',
-                style: TextStyle(fontSize: 13, height: 1.5, color: textColor),
+              // Drag Handle
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: mutedColor.withValues(alpha: 0.35),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
+
+              // Title Header: Allow Notifications and its Malayalam
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.notifications_active_rounded,
+                      color: accentColor,
+                      size: 26,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Allow Notifications',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'അറിയിപ്പുകൾ അനുവദിക്കുക',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: mutedColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              Text(
+                'ദിവസവും രാവിലെയും വൈകുന്നേരവും തിരുവചന സന്ദേശങ്ങൾ ലഭിക്കാൻ അറിയിപ്പുകൾ അനുവദിക്കൂ:',
+                style: TextStyle(
+                  fontSize: 13.5,
+                  height: 1.5,
+                  color: textColor,
+                ),
+              ),
+
               const SizedBox(height: 12),
+
+              // Reminder Times Box
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkSurface2 : AppColors.lightSurface2,
-                  borderRadius: BorderRadius.circular(10),
+                  color: surface2Color,
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: lineColor),
                 ),
                 child: Column(
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.wb_sunny_outlined, size: 18, color: accentColor),
-                        const SizedBox(width: 8),
+                        Icon(Icons.wb_sunny_outlined, size: 20, color: accentColor),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             '7:00 AM • പ്രഭാത വചനം (Daily Verse)',
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textColor),
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: textColor,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     Row(
                       children: [
-                        Icon(Icons.nights_stay_outlined, size: 18, color: accentColor),
-                        const SizedBox(width: 8),
+                        Icon(Icons.nights_stay_outlined, size: 20, color: accentColor),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             '7:00 PM • സായാഹ്ന വായന (Daily Bread)',
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textColor),
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: textColor,
+                            ),
                           ),
                         ),
                       ],
@@ -351,35 +415,69 @@ class NotificationService {
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
+
+              const SizedBox(height: 12),
+
               Text(
-                'Allow notifications to receive uplifting daily verses and quiet reading reminders.',
-                style: TextStyle(fontSize: 12, color: mutedColor, height: 1.4),
+                'Receive uplifting daily verses and quiet evening reading reminders.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: mutedColor,
+                  height: 1.4,
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Action Buttons: Horizontal, English only, outline for Later
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        side: BorderSide(color: lineColor, width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () => Navigator.of(ctx).pop(false),
+                      child: Text(
+                        'Later',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: textColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: accentColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () => Navigator.of(ctx).pop(true),
+                      child: const Text(
+                        'Allow',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: Text(
-                'പിന്നീട് (Later)',
-                style: TextStyle(color: mutedColor, fontSize: 13),
-              ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: accentColor,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              ),
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: const Text(
-                'അനുവദിക്കുക (Allow)',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-              ),
-            ),
-          ],
         );
       },
     );
