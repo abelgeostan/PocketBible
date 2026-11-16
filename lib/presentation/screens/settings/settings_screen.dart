@@ -36,32 +36,57 @@ class SettingsScreen extends StatelessWidget {
           // Section: Appearance
           _buildSectionTitle('Appearance', accentColor),
           Card(
-            child: Column(
-              children: [
-                RadioListTile<ThemeMode>(
-                  value: ThemeMode.light,
-                  groupValue: themeProvider.themeMode,
-                  activeColor: accentColor,
-                  title: const Text('Light Mode'),
-                  onChanged: (mode) => themeProvider.setThemeMode(mode!),
-                ),
-                Divider(height: 1, color: lineColor),
-                RadioListTile<ThemeMode>(
-                  value: ThemeMode.dark,
-                  groupValue: themeProvider.themeMode,
-                  activeColor: accentColor,
-                  title: const Text('Dark Mode'),
-                  onChanged: (mode) => themeProvider.setThemeMode(mode!),
-                ),
-                Divider(height: 1, color: lineColor),
-                RadioListTile<ThemeMode>(
-                  value: ThemeMode.system,
-                  groupValue: themeProvider.themeMode,
-                  activeColor: accentColor,
-                  title: const Text('System Default'),
-                  onChanged: (mode) => themeProvider.setThemeMode(mode!),
-                ),
-              ],
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(color: lineColor),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildThemeOptionCard(
+                          title: 'Light Mode',
+                          isDarkTheme: false,
+                          isSelected: themeProvider.themeMode == ThemeMode.light,
+                          accentColor: accentColor,
+                          lineColor: lineColor,
+                          surface2Color: surface2Color,
+                          textColor: textColor,
+                          mutedColor: mutedColor,
+                          onTap: () => themeProvider.setThemeMode(ThemeMode.light),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildThemeOptionCard(
+                          title: 'Dark Mode',
+                          isDarkTheme: true,
+                          isSelected: themeProvider.themeMode == ThemeMode.dark,
+                          accentColor: accentColor,
+                          lineColor: lineColor,
+                          surface2Color: surface2Color,
+                          textColor: textColor,
+                          mutedColor: mutedColor,
+                          onTap: () => themeProvider.setThemeMode(ThemeMode.dark),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  _buildSystemOptionTile(
+                    isSelected: themeProvider.themeMode == ThemeMode.system,
+                    accentColor: accentColor,
+                    lineColor: lineColor,
+                    surface2Color: surface2Color,
+                    textColor: textColor,
+                    mutedColor: mutedColor,
+                    onTap: () => themeProvider.setThemeMode(ThemeMode.system),
+                  ),
+                ],
+              ),
             ),
           ),
 
@@ -681,6 +706,219 @@ class SettingsScreen extends StatelessWidget {
           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: textColor),
         ),
       ],
+    );
+  }
+
+  Widget _buildThemeOptionCard({
+    required String title,
+    required bool isDarkTheme,
+    required bool isSelected,
+    required Color accentColor,
+    required Color lineColor,
+    required Color surface2Color,
+    required Color textColor,
+    required Color mutedColor,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
+          decoration: BoxDecoration(
+            color: surface2Color,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected ? accentColor : lineColor,
+              width: isSelected ? 2 : 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              Align(
+                alignment: Alignment.topRight,
+                child: _buildSelectionIndicator(isSelected, accentColor, mutedColor),
+              ),
+              const SizedBox(height: 6),
+              _buildThemeMockup(isDarkTheme: isDarkTheme),
+              const SizedBox(height: 14),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                  color: textColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSystemOptionTile({
+    required bool isSelected,
+    required Color accentColor,
+    required Color lineColor,
+    required Color surface2Color,
+    required Color textColor,
+    required Color mutedColor,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: surface2Color,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isSelected ? accentColor : lineColor,
+              width: isSelected ? 2 : 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.desktop_windows_outlined,
+                size: 22,
+                color: isSelected ? accentColor : textColor,
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  'System Default',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                    color: textColor,
+                  ),
+                ),
+              ),
+              _buildSelectionIndicator(isSelected, accentColor, mutedColor),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSelectionIndicator(bool isSelected, Color accentColor, Color mutedColor) {
+    if (isSelected) {
+      return Container(
+        width: 22,
+        height: 22,
+        decoration: BoxDecoration(
+          color: accentColor,
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(
+          Icons.check_rounded,
+          size: 15,
+          color: Colors.white,
+        ),
+      );
+    }
+    return Container(
+      width: 22,
+      height: 22,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: mutedColor.withValues(alpha: 0.4),
+          width: 2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThemeMockup({required bool isDarkTheme}) {
+    final bgColor = isDarkTheme ? const Color(0xFF1E232A) : Colors.white;
+    final barColor = isDarkTheme ? const Color(0xFF38434F) : const Color(0xFFDCE2EB);
+    final itemColor = isDarkTheme ? const Color(0xFF2C3540) : const Color(0xFFE4E9F0);
+    final borderColor = isDarkTheme ? const Color(0xFF2F3842) : const Color(0xFFDFE4E9);
+
+    return Container(
+      width: 90,
+      height: 68,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: borderColor, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDarkTheme ? 0.25 : 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 46,
+            height: 8,
+            decoration: BoxDecoration(
+              color: barColor,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 9),
+          Row(
+            children: [
+              Container(
+                width: 7,
+                height: 7,
+                decoration: BoxDecoration(
+                  color: itemColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Container(
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: itemColor,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+            ],
+          ),
+          const SizedBox(height: 7),
+          Row(
+            children: [
+              Container(
+                width: 7,
+                height: 7,
+                decoration: BoxDecoration(
+                  color: itemColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 5),
+              Container(
+                width: 32,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: itemColor,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
