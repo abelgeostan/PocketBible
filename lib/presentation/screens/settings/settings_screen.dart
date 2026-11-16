@@ -28,13 +28,13 @@ class SettingsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ക്രമീകരണങ്ങൾ (Settings)'),
+        title: const Text('Settings'),
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         children: [
           // Section: Appearance
-          _buildSectionTitle('തീം (Appearance)', accentColor),
+          _buildSectionTitle('Appearance', accentColor),
           Card(
             child: Column(
               children: [
@@ -42,8 +42,7 @@ class SettingsScreen extends StatelessWidget {
                   value: ThemeMode.light,
                   groupValue: themeProvider.themeMode,
                   activeColor: accentColor,
-                  title: const Text('Light Mode (വെളിച്ചം)'),
-                  subtitle: const Text('Clean white surface and warm bronze accents'),
+                  title: const Text('Light Mode'),
                   onChanged: (mode) => themeProvider.setThemeMode(mode!),
                 ),
                 Divider(height: 1, color: lineColor),
@@ -51,8 +50,7 @@ class SettingsScreen extends StatelessWidget {
                   value: ThemeMode.dark,
                   groupValue: themeProvider.themeMode,
                   activeColor: accentColor,
-                  title: const Text('Dark Mode (ഇരുണ്ടത്)'),
-                  subtitle: const Text('Deep slate background with golden amber accents'),
+                  title: const Text('Dark Mode'),
                   onChanged: (mode) => themeProvider.setThemeMode(mode!),
                 ),
                 Divider(height: 1, color: lineColor),
@@ -60,8 +58,7 @@ class SettingsScreen extends StatelessWidget {
                   value: ThemeMode.system,
                   groupValue: themeProvider.themeMode,
                   activeColor: accentColor,
-                  title: const Text('System Default (സിസ്റ്റം)'),
-                  subtitle: const Text('Matches your phone device setting'),
+                  title: const Text('System Default'),
                   onChanged: (mode) => themeProvider.setThemeMode(mode!),
                 ),
               ],
@@ -71,7 +68,7 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Section: Typography & Reader Settings
-          _buildSectionTitle('വായനാരീതിയും ഫോണ്ടും (Reading & Typography)', accentColor),
+          _buildSectionTitle('Reading & Typography', accentColor),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -82,7 +79,7 @@ class SettingsScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'ഫോണ്ട് വലിപ്പം (Font Size)',
+                        'Font Size',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -136,11 +133,11 @@ class SettingsScreen extends StatelessWidget {
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
                     title: Text(
-                      'സ്ക്രീൻ ഓൺ ആക്കി വെക്കുക (Keep Screen Awake)',
+                      'Keep Screen Awake',
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textColor),
                     ),
                     subtitle: Text(
-                      'Prevent phone screen from turning off while reading',
+                      'Prevent screen from turning off while reading',
                       style: TextStyle(fontSize: 12, color: mutedColor),
                     ),
                     activeColor: accentColor,
@@ -154,8 +151,12 @@ class SettingsScreen extends StatelessWidget {
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
                     title: Text(
-                      'വാക്യ നമ്പറുകൾ കാണിക്കുക (Show Verse Numbers)',
+                      'Show Verse Numbers',
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textColor),
+                    ),
+                    subtitle: Text(
+                      'Display verse numbers in scripture text',
+                      style: TextStyle(fontSize: 12, color: mutedColor),
                     ),
                     activeColor: accentColor,
                     value: settings.showVerseNumbers,
@@ -168,11 +169,11 @@ class SettingsScreen extends StatelessWidget {
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
                     title: Text(
-                      'വാക്യ സെലക്ടർ ഓട്ടോമാറ്റിക് ആയി തുറക്കുക (Auto Open Verse Selector)',
+                      'Auto Open Verse Selector',
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textColor),
                     ),
                     subtitle: Text(
-                      'Automatically open verse selector after book and chapter are selected',
+                      'Open verse picker automatically after chapter selection',
                       style: TextStyle(fontSize: 12, color: mutedColor),
                     ),
                     activeColor: accentColor,
@@ -187,14 +188,14 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Section: Notifications
-          _buildSectionTitle('അറിയിപ്പുകൾ (Notifications)', accentColor),
+          _buildSectionTitle('Notifications', accentColor),
           Card(
             child: Column(
               children: [
                 // Morning Notification
                 SwitchListTile(
                   title: Text(
-                    'പ്രഭാത വചനം (Morning Daily Verse)',
+                    'Morning Daily Verse',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -202,7 +203,7 @@ class SettingsScreen extends StatelessWidget {
                     ),
                   ),
                   subtitle: Text(
-                    'ദിവസേന രാവിലെ ഇന്നത്തെ വചനം അറിയിപ്പായി ലഭിക്കുക',
+                    'Receive daily morning verse reminder',
                     style: TextStyle(fontSize: 12, color: mutedColor),
                   ),
                   activeColor: accentColor,
@@ -215,7 +216,7 @@ class SettingsScreen extends StatelessWidget {
                   ListTile(
                     leading: Icon(Icons.wb_sunny_outlined, color: accentColor, size: 20),
                     title: Text(
-                      'അറിയിപ്പ് സമയം (Notification Time)',
+                      'Notification Time',
                       style: TextStyle(fontSize: 14, color: textColor),
                     ),
                     trailing: Container(
@@ -251,7 +252,7 @@ class SettingsScreen extends StatelessWidget {
                 // Evening Notification
                 SwitchListTile(
                   title: Text(
-                    'സായാഹ്ന സന്ദേശം (Evening Daily Bread)',
+                    'Evening Daily Bread',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -259,7 +260,7 @@ class SettingsScreen extends StatelessWidget {
                     ),
                   ),
                   subtitle: Text(
-                    'ദിവസേന വൈകുന്നേരം ദൈവവചനം വായിക്കാൻ ഓർമ്മപ്പെടുത്തൽ',
+                    'Receive daily evening reading reminder',
                     style: TextStyle(fontSize: 12, color: mutedColor),
                   ),
                   activeColor: accentColor,
@@ -272,7 +273,7 @@ class SettingsScreen extends StatelessWidget {
                   ListTile(
                     leading: Icon(Icons.nights_stay_outlined, color: accentColor, size: 20),
                     title: Text(
-                      'അറിയിപ്പ് സമയം (Notification Time)',
+                      'Notification Time',
                       style: TextStyle(fontSize: 14, color: textColor),
                     ),
                     trailing: Container(
@@ -302,7 +303,6 @@ class SettingsScreen extends StatelessWidget {
                     },
                   ),
                 ],
-
               ],
             ),
           ),
@@ -310,7 +310,7 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Section: Data Backup & Restore
-          _buildSectionTitle('ഡാറ്റ ബാക്കപ്പും പുനഃസ്ഥാപനവും (Backup & Restore)', accentColor),
+          _buildSectionTitle('Backup & Restore', accentColor),
           Card(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
@@ -338,7 +338,7 @@ class SettingsScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'ഡാറ്റ എക്സ്പോർട്ട് ചെയ്യുക',
+                              'Export Backup',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
@@ -347,7 +347,7 @@ class SettingsScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'Save your bookmarks, highlights, and notes to your device.',
+                              'Save bookmarks, highlights, and notes to your device',
                               style: TextStyle(fontSize: 12, color: mutedColor, height: 1.3),
                             ),
                             const SizedBox(height: 10),
@@ -398,7 +398,7 @@ class SettingsScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'ഡാറ്റ ഇംപോർട്ട് ചെയ്യുക',
+                              'Import Backup',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
@@ -407,7 +407,7 @@ class SettingsScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'Restore bookmarks, highlights, and notes from a backup file.',
+                              'Restore bookmarks, highlights, and notes from a backup file',
                               style: TextStyle(fontSize: 12, color: mutedColor, height: 1.3),
                             ),
                             const SizedBox(height: 10),
@@ -470,7 +470,7 @@ class SettingsScreen extends StatelessWidget {
     final messenger = ScaffoldMessenger.of(context);
     messenger.showSnackBar(
       const SnackBar(
-        content: Text('ബാക്കപ്പ് ഫയൽ തയ്യാറാക്കുന്നു... (Preparing backup...)'),
+        content: Text('Preparing backup file...'),
         duration: Duration(seconds: 1),
       ),
     );
@@ -500,7 +500,7 @@ class SettingsScreen extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'ബാക്കപ്പ് ഡൗൺലോഡ് ചെയ്തു',
+                  'Backup Downloaded',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: textColor),
                 ),
               ),
@@ -511,7 +511,7 @@ class SettingsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'ബാക്കപ്പ് ഫയൽ നിങ്ങളുടെ ഫോണിൽ വിജയകരമായി സേവ് ചെയ്തു (Backup downloaded successfully):',
+                'Backup file was successfully saved to your device:',
                 style: TextStyle(fontSize: 13, color: mutedColor, height: 1.4),
               ),
               if (result.filePath != null) ...[
@@ -540,14 +540,14 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ],
               const SizedBox(height: 14),
-              _buildStatRow('🔖 ബുക്ക്‌മാർക്കുകൾ (Bookmarks)', result.bookmarks, textColor),
+              _buildStatRow('🔖 Bookmarks', result.bookmarks, textColor),
               const SizedBox(height: 6),
-              _buildStatRow('🖍️ ഹൈലൈറ്റുകൾ (Highlights)', result.highlights, textColor),
+              _buildStatRow('🖍️ Highlights', result.highlights, textColor),
               const SizedBox(height: 6),
-              _buildStatRow('📝 കുറിപ്പുകൾ (Notes)', result.notes, textColor),
+              _buildStatRow('📝 Notes', result.notes, textColor),
               if (result.history > 0) ...[
                 const SizedBox(height: 6),
-                _buildStatRow('🕒 വായനാ ചരിത്രം (History)', result.history, textColor),
+                _buildStatRow('🕒 Reading History', result.history, textColor),
               ],
             ],
           ),
@@ -559,7 +559,7 @@ class SettingsScreen extends StatelessWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('ശരി (OK)'),
+              child: const Text('OK'),
             ),
           ],
         ),
@@ -567,7 +567,7 @@ class SettingsScreen extends StatelessWidget {
     } else if (result.message != null && result.message != 'Download cancelled') {
       messenger.showSnackBar(
         SnackBar(
-          content: Text('ഡൗൺലോഡ് പരാജയപ്പെട്ടു: ${result.message}'),
+          content: Text('Export failed: ${result.message}'),
           backgroundColor: Colors.red.shade700,
         ),
       );
@@ -584,12 +584,12 @@ class SettingsScreen extends StatelessWidget {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('ഇംപോർട്ട് പരാജയപ്പെട്ടു (Import Failed)'),
-          content: Text(result.message ?? 'ബാക്കപ്പ് ഫയൽ വായിക്കാൻ കഴിഞ്ഞില്ല.'),
+          title: const Text('Import Failed'),
+          content: Text(result.message ?? 'Could not read backup file.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('ശരി (OK)'),
+              child: const Text('OK'),
             ),
           ],
         ),
@@ -623,7 +623,7 @@ class SettingsScreen extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'ഇംപോർട്ട് പൂർത്തിയായി',
+                'Backup Restored',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: textColor),
               ),
             ),
@@ -634,7 +634,7 @@ class SettingsScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'നിങ്ങളുടെ വിവരങ്ങൾ വിജയകരമായി പുനഃസ്ഥാപിച്ചു (Backup successfully restored):',
+              'Your backup was successfully restored:',
               style: TextStyle(fontSize: 13, color: mutedColor),
             ),
             if (result.filePath != null) ...[
@@ -645,14 +645,14 @@ class SettingsScreen extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 14),
-            _buildStatRow('🔖 ബുക്ക്‌മാർക്കുകൾ (Bookmarks)', result.bookmarks, textColor),
+            _buildStatRow('🔖 Bookmarks', result.bookmarks, textColor),
             const SizedBox(height: 6),
-            _buildStatRow('🖍️ ഹൈലൈറ്റുകൾ (Highlights)', result.highlights, textColor),
+            _buildStatRow('🖍️ Highlights', result.highlights, textColor),
             const SizedBox(height: 6),
-            _buildStatRow('📝 കുറിപ്പുകൾ (Notes)', result.notes, textColor),
+            _buildStatRow('📝 Notes', result.notes, textColor),
             if (result.history > 0) ...[
               const SizedBox(height: 6),
-              _buildStatRow('🕒 വായനാ ചരിത്രം (History)', result.history, textColor),
+              _buildStatRow('🕒 Reading History', result.history, textColor),
             ],
           ],
         ),
@@ -664,7 +664,7 @@ class SettingsScreen extends StatelessWidget {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('ശരി (OK)'),
+            child: const Text('OK'),
           ),
         ],
       ),

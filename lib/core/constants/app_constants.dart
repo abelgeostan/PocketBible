@@ -1,8 +1,8 @@
 class AppConstants {
   static const String appName = 'PocketBible';
   static const String appTagline = 'മലയാളം സത്യവേദപുസ്തകം';
-  static const String appVersion = '1.6.0';
-  static const String appBuild = '4';
+  static const String appVersion = '1.6.1';
+  static const String appBuild = '5';
   static const String playStoreUrl = 'https://play.google.com/store/apps/details?id=in.pocketbible.app';
   static const String websiteUrl = 'https://pocketbible.in';
   static const String shareAttribution = 'Visit PocketBible.in';
