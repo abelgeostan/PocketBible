@@ -500,6 +500,9 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
 
+    // Subtle 300ms pause so the preparation state is perceptible to the user
+    await Future.delayed(const Duration(milliseconds: 300));
+
     final result = await BackupService.instance.exportUserData();
     if (!context.mounted) return;
 
@@ -516,37 +519,41 @@ class SettingsScreen extends StatelessWidget {
         builder: (ctx) => AlertDialog(
           backgroundColor: surfaceColor,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
             side: BorderSide(color: lineColor),
           ),
-          title: Row(
-            children: [
-              Icon(Icons.check_circle_rounded, color: Colors.green.shade600, size: 26),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Backup Downloaded',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: textColor),
-                ),
-              ),
-            ],
-          ),
+          contentPadding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              _AnimatedTransferBadge(
+                isDownload: true,
+                accentColor: accentColor,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Backup Downloaded',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: textColor,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
               Text(
                 'Backup file was successfully saved to your device:',
-                style: TextStyle(fontSize: 13, color: mutedColor, height: 1.4),
+                style: TextStyle(fontSize: 12.5, color: mutedColor, height: 1.3),
+                textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 14),
               if (result.filePath != null) ...[
-                const SizedBox(height: 10),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: isDark ? AppColors.darkSurface2 : AppColors.lightSurface2,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: lineColor),
                   ),
                   child: Row(
@@ -563,28 +570,48 @@ class SettingsScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+                const SizedBox(height: 14),
               ],
-              const SizedBox(height: 14),
-              _buildStatRow('🔖 Bookmarks', result.bookmarks, textColor),
-              const SizedBox(height: 6),
-              _buildStatRow('🖍️ Highlights', result.highlights, textColor),
-              const SizedBox(height: 6),
-              _buildStatRow('📝 Notes', result.notes, textColor),
-              if (result.history > 0) ...[
-                const SizedBox(height: 6),
-                _buildStatRow('🕒 Reading History', result.history, textColor),
-              ],
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface2 : AppColors.lightSurface2,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: lineColor),
+                ),
+                child: Column(
+                  children: [
+                    _buildStatRow('🔖 Bookmarks', result.bookmarks, textColor),
+                    const SizedBox(height: 6),
+                    _buildStatRow('🖍️ Highlights', result.highlights, textColor),
+                    const SizedBox(height: 6),
+                    _buildStatRow('📝 Notes', result.notes, textColor),
+                    if (result.history > 0) ...[
+                      const SizedBox(height: 6),
+                      _buildStatRow('🕒 Reading History', result.history, textColor),
+                    ],
+                  ],
+                ),
+              ),
             ],
           ),
           actions: [
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: accentColor,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: accentColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text(
+                  'Done',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                ),
               ),
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('OK'),
             ),
           ],
         ),
@@ -639,57 +666,99 @@ class SettingsScreen extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: surfaceColor,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           side: BorderSide(color: lineColor),
         ),
-        title: Row(
-          children: [
-            Icon(Icons.check_circle_rounded, color: Colors.green.shade600, size: 26),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Backup Restored',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: textColor),
-              ),
-            ),
-          ],
-        ),
+        contentPadding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Your backup was successfully restored:',
-              style: TextStyle(fontSize: 13, color: mutedColor),
+            _AnimatedTransferBadge(
+              isDownload: false,
+              accentColor: accentColor,
             ),
-            if (result.filePath != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                'File: ${result.filePath}',
-                style: TextStyle(fontSize: 11.5, color: accentColor, fontWeight: FontWeight.w600),
+            const SizedBox(height: 16),
+            Text(
+              'Backup Restored',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: textColor,
               ),
-            ],
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Your data was successfully restored to the app:',
+              style: TextStyle(fontSize: 12.5, color: mutedColor, height: 1.3),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 14),
-            _buildStatRow('🔖 Bookmarks', result.bookmarks, textColor),
-            const SizedBox(height: 6),
-            _buildStatRow('🖍️ Highlights', result.highlights, textColor),
-            const SizedBox(height: 6),
-            _buildStatRow('📝 Notes', result.notes, textColor),
-            if (result.history > 0) ...[
-              const SizedBox(height: 6),
-              _buildStatRow('🕒 Reading History', result.history, textColor),
+            if (result.filePath != null) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface2 : AppColors.lightSurface2,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: lineColor),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.insert_drive_file_outlined, size: 18, color: accentColor),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        result.filePath!,
+                        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: textColor),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
             ],
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface2 : AppColors.lightSurface2,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: lineColor),
+              ),
+              child: Column(
+                children: [
+                  _buildStatRow('🔖 Bookmarks', result.bookmarks, textColor),
+                  const SizedBox(height: 6),
+                  _buildStatRow('🖍️ Highlights', result.highlights, textColor),
+                  const SizedBox(height: 6),
+                  _buildStatRow('📝 Notes', result.notes, textColor),
+                  if (result.history > 0) ...[
+                    const SizedBox(height: 6),
+                    _buildStatRow('🕒 Reading History', result.history, textColor),
+                  ],
+                ],
+              ),
+            ),
           ],
         ),
         actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: accentColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: accentColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text(
+                'Done',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+              ),
             ),
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK'),
           ),
         ],
       ),
@@ -919,6 +988,181 @@ class SettingsScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _AnimatedTransferBadge extends StatefulWidget {
+  final bool isDownload; // true for download (export), false for upload (import)
+  final Color accentColor;
+
+  const _AnimatedTransferBadge({
+    required this.isDownload,
+    required this.accentColor,
+  });
+
+  @override
+  State<_AnimatedTransferBadge> createState() => _AnimatedTransferBadgeState();
+}
+
+class _AnimatedTransferBadgeState extends State<_AnimatedTransferBadge>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _progressAnimation;
+  late Animation<double> _arrowSlideAnimation;
+  late Animation<double> _checkScaleAnimation;
+  late Animation<double> _iconFadeOutAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    );
+
+    // Circular progress sweep from 0.0 -> 1.0
+    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.65, curve: Curves.easeInOutCubic),
+      ),
+    );
+
+    // Arrow slide motion (slides down for download, up for upload)
+    _arrowSlideAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.0, end: widget.isDownload ? 7.0 : -7.0)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 35,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: widget.isDownload ? 7.0 : -7.0, end: widget.isDownload ? -2.0 : 2.0)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 35,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: widget.isDownload ? -2.0 : 2.0, end: 0.0)
+            .chain(CurveTween(curve: Curves.easeIn)),
+        weight: 30,
+      ),
+    ]).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.65),
+      ),
+    );
+
+    // Fade out arrow when transitioning to checkmark
+    _iconFadeOutAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.60, 0.72, curve: Curves.easeOut),
+      ),
+    );
+
+    // Pop in checkmark with elastic bounce
+    _checkScaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.68, 1.0, curve: Curves.elasticOut),
+      ),
+    );
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final isCompleted = _controller.value >= 0.70;
+        final progress = _progressAnimation.value;
+
+        return SizedBox(
+          width: 76,
+          height: 76,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Outer Circular Progress Ring
+              SizedBox(
+                width: 72,
+                height: 72,
+                child: CircularProgressIndicator(
+                  value: isCompleted ? 1.0 : progress,
+                  strokeWidth: 3.5,
+                  strokeCap: StrokeCap.round,
+                  backgroundColor: widget.accentColor.withValues(alpha: 0.15),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    isCompleted ? Colors.green.shade600 : widget.accentColor,
+                  ),
+                ),
+              ),
+
+              // Inner Badge Circle
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isCompleted
+                      ? Colors.green.shade600
+                      : widget.accentColor.withValues(alpha: 0.15),
+                  boxShadow: isCompleted
+                      ? [
+                          BoxShadow(
+                            color: Colors.green.withValues(alpha: 0.35),
+                            blurRadius: 14,
+                            spreadRadius: 2,
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Transfer Arrow Icon (animates & fades out)
+                    if (_iconFadeOutAnimation.value > 0.0)
+                      Opacity(
+                        opacity: _iconFadeOutAnimation.value,
+                        child: Transform.translate(
+                          offset: Offset(0, _arrowSlideAnimation.value),
+                          child: Icon(
+                            widget.isDownload
+                                ? Icons.file_download_rounded
+                                : Icons.file_upload_rounded,
+                            size: 30,
+                            color: widget.accentColor,
+                          ),
+                        ),
+                      ),
+
+                    // Completed Checkmark Icon (pops in with elastic bounce)
+                    if (_checkScaleAnimation.value > 0.0)
+                      Transform.scale(
+                        scale: _checkScaleAnimation.value,
+                        child: const Icon(
+                          Icons.check_rounded,
+                          size: 34,
+                          color: Colors.white,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
