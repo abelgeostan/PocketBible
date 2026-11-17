@@ -8,7 +8,9 @@ import '../../../providers/search_provider.dart';
 import '../reader/reader_screen.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  final String? initialQuery;
+
+  const SearchScreen({super.key, this.initialQuery});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -16,6 +18,25 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _controller = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialQuery != null && widget.initialQuery!.isNotEmpty) {
+      _controller.text = widget.initialQuery!;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<SearchProvider>().onQueryChanged(widget.initialQuery!);
+        }
+      });
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<SearchProvider>().clearSearch();
+        }
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -108,7 +129,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
           // Results List
           Expanded(
-            child: _buildResultsView(search, isDark, textColor, mutedColor, accentColor, surface2Color, lineColor),
+            child: _buildResultsView(search, isDark, textColor, mutedColor, accentColor, surfaceColor, surface2Color, lineColor),
           ),
         ],
       ),
@@ -145,6 +166,7 @@ class _SearchScreenState extends State<SearchScreen> {
     Color textColor,
     Color mutedColor,
     Color accentColor,
+    Color surfaceColor,
     Color surface2Color,
     Color lineColor,
   ) {
@@ -153,34 +175,72 @@ class _SearchScreenState extends State<SearchScreen> {
     }
 
     if (!search.hasSearched) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.search, size: 52, color: mutedColor.withValues(alpha: 0.5)),
-              const SizedBox(height: 16),
-              Text(
-                'തിരയാൻ മലയാളത്തിൽ വാക്ക് നൽകുക',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+      final suggestions = ['ദൈവം', 'യേശു', 'സ്നേഹം', 'വിശ്വാസം', 'സമാധാനം', 'പ്രാർത്ഥന'];
+      return SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        child: Column(
+          children: [
+            Icon(Icons.search, size: 48, color: mutedColor.withValues(alpha: 0.5)),
+            const SizedBox(height: 14),
+            Text(
+              'തിരയാൻ മലയാളത്തിൽ വാക്ക് നൽകുക',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 6),
-              Text(
-                'Type Malayalam words to search the Bible',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: mutedColor,
-                  fontSize: 13,
-                ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Type Malayalam words to search the Bible',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: mutedColor,
+                fontSize: 13,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'ജനപ്രിയ തിരച്ചിലുകൾ (Popular Searches)',
+              style: TextStyle(
+                color: mutedColor,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: suggestions.map((word) {
+                return InkWell(
+                  onTap: () {
+                    _controller.text = word;
+                    search.onQueryChanged(word);
+                  },
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: surfaceColor,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: lineColor),
+                    ),
+                    child: Text(
+                      word,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: accentColor,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
         ),
       );
     }
