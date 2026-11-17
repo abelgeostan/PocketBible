@@ -147,62 +147,115 @@ class AboutScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'പ്രധാന സവിശേഷതകൾ (Key Features)',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: accentColor,
-                    ),
+                  // Malayalam Features List
+                  Row(
+                    children: [
+                      Icon(Icons.star_rounded, size: 20, color: accentColor),
+                      const SizedBox(width: 8),
+                      Text(
+                        'പ്രധാന സവിശേഷതകൾ',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: accentColor,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
-                  _buildFeatureItem(
-                    '66 പുസ്തകങ്ങൾ, 1,189 അധ്യായങ്ങൾ, 31,098 വാക്യങ്ങൾ',
+                  _buildBulletItem(
+                    '66 പുസ്തകങ്ങൾ, 1,189 അധ്യായങ്ങൾ, 31,098 വാക്യങ്ങൾ അടങ്ങിയ സമ്പൂർണ്ണ ബൈബിൾ',
+                    textColor,
+                  ),
+                  _buildBulletItem(
+                    '100% ഓഫ്‌ലൈൻ പ്രവർത്തനം (ഇന്റർനെറ്റ് ആവശ്യമില്ലാതെ എവിടെയും വായിക്കാം)',
+                    textColor,
+                  ),
+                  _buildBulletItem(
+                    'വേഗതയേറിയ മലയാളം വചനവും കീവേഡും തിരയാനുള്ള സൗകര്യം',
+                    textColor,
+                  ),
+                  _buildBulletItem(
+                    'അധ്യായങ്ങൾക്കിടയിൽ സുഗമമായ സ്വൈപ്പ് നാവിഗേഷൻ',
+                    textColor,
+                  ),
+                  _buildBulletItem(
+                    'വ്യക്തിഗത ബുക്ക്‌മാർക്കുകൾ, വർണ്ണ ഹൈലൈറ്റുകൾ, പഠന കുറിപ്പുകൾ',
+                    textColor,
+                  ),
+                  _buildBulletItem(
+                    'ഡാറ്റ ബാക്കപ്പും പുനഃസ്ഥാപനവും (ബുക്ക്‌മാർക്കുകൾ, ഹൈലൈറ്റുകൾ, കുറിപ്പുകൾ ഫോണിലേക്ക് സൂക്ഷിക്കാം)',
+                    textColor,
+                  ),
+                  _buildBulletItem(
+                    'കണ്ണിന് ഇണങ്ങുന്ന ലൈറ്റ് / ഡാർക്ക് തീമുകളും ഫോണ്ട് വലിപ്പ ക്രമീകരണവും',
+                    textColor,
+                  ),
+                  _buildBulletItem(
+                    'ദിവസേനയുള്ള പ്രഭാത വചനവും സായാഹ്ന വായനാ ഓർമ്മപ്പെടുത്തലുകളും',
+                    textColor,
+                  ),
+                  _buildBulletItem(
+                    'അവസാനം വായിച്ച സ്ഥാനം തനിയെ ഓർത്തുസൂക്ഷിക്കുന്നു',
+                    textColor,
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    child: Divider(height: 1, color: lineColor),
+                  ),
+
+                  // English Features List
+                  Row(
+                    children: [
+                      Icon(Icons.star_outline_rounded, size: 20, color: accentColor),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Key Features',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: accentColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  _buildBulletItem(
                     'Complete Bible with 66 books, 1,189 chapters & 31,098 verses',
                     textColor,
-                    mutedColor,
                   ),
-                  _buildFeatureItem(
-                    '100% ഓഫ്‌ലൈൻ പ്രവർത്തനം (ഇന്റർനെറ്റ് ആവശ്യമില്ല)',
-                    '100% Offline access — read anywhere without internet',
+                  _buildBulletItem(
+                    '100% Offline access — read anywhere without an internet connection',
                     textColor,
-                    mutedColor,
                   ),
-                  _buildFeatureItem(
-                    'വേഗതയേറിയ മലയാളം വചന തിരച്ചിൽ',
+                  _buildBulletItem(
                     'Instant Malayalam keyword and scripture search',
                     textColor,
-                    mutedColor,
                   ),
-                  _buildFeatureItem(
-                    'അധ്യായങ്ങൾക്കിടയിൽ സുഗമമായ സ്വൈപ്പ് നാവിഗേഷൻ',
+                  _buildBulletItem(
                     'Smooth horizontal swipe navigation between chapters',
                     textColor,
-                    mutedColor,
                   ),
-                  _buildFeatureItem(
-                    'ബുക്ക്മാർക്കുകൾ, വർണ്ണ ഹൈലൈറ്റുകൾ, കുറിപ്പുകൾ',
+                  _buildBulletItem(
                     'Personal bookmarks, color highlights, and study notes',
                     textColor,
-                    mutedColor,
                   ),
-                  _buildFeatureItem(
-                    'ലൈറ്റ് / ഡാർക്ക് തീം, ഫോണ്ട് വലിപ്പ ക്രമീകരണം',
+                  _buildBulletItem(
+                    'Data backup & restore — export and import your saved data to your device',
+                    textColor,
+                  ),
+                  _buildBulletItem(
                     'Comfortable Light & Dark themes with adjustable font size',
                     textColor,
-                    mutedColor,
                   ),
-                  _buildFeatureItem(
-                    'ദിവസേനയുള്ള പ്രഭാത വചനവും സായാഹ്ന ഓർമ്മപ്പെടുത്തലും',
-                    'Daily morning verse and evening reflection notifications',
+                  _buildBulletItem(
+                    'Daily morning verse and evening reading reminder notifications',
                     textColor,
-                    mutedColor,
                   ),
-                  _buildFeatureItem(
-                    'അവസാനം വായിച്ച സ്ഥാനം ഓർത്തുസൂക്ഷിക്കുന്നു',
-                    'Automatically saves and resumes your last read position',
+                  _buildBulletItem(
+                    'Automatically remembers and resumes from your last read position',
                     textColor,
-                    mutedColor,
                   ),
                 ],
               ),
@@ -301,41 +354,28 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureItem(
-    String malayalam,
-    String english,
-    Color textColor,
-    Color mutedColor,
-  ) {
+  Widget _buildBulletItem(String text, Color textColor) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('• ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          Text(
+            '• ',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
+          ),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  malayalam,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    height: 1.35,
-                    color: textColor,
-                  ),
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  english,
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    height: 1.3,
-                    color: mutedColor,
-                  ),
-                ),
-              ],
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 13,
+                height: 1.4,
+                color: textColor,
+              ),
             ),
           ),
         ],
