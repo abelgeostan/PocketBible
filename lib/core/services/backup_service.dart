@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/database/bible_database.dart';
 import '../constants/app_constants.dart';
 
@@ -173,6 +174,34 @@ class BackupService {
       };
 
       final counts = await _db.importBackupData(typedData);
+
+      // If reading history was imported, sync latest entry to lastRead in preferences
+      if ((counts['reading_history'] ?? 0) > 0) {
+        try {
+          final history = await _db.getReadingHistory(limit: 1);
+          if (history.isNotEmpty) {
+            final latest = history.first;
+            final bCode = latest['book_code']?.toString() ?? '';
+            final bName = latest['book_name']?.toString() ?? '';
+            final chap = int.tryParse(latest['chapter']?.toString() ?? '') ?? 1;
+            final ts = int.tryParse(latest['timestamp']?.toString() ?? '') ??
+                DateTime.now().millisecondsSinceEpoch;
+            if (bCode.isNotEmpty) {
+              final prefs = await SharedPreferences.getInstance();
+              final pos = {
+                'book_code': bCode,
+                'book_name': bName,
+                'chapter': chap,
+                'verse': 1,
+                'timestamp': ts,
+              };
+              await prefs.setString(AppConstants.keyLastRead, json.encode(pos));
+            }
+          }
+        } catch (e) {
+          debugPrint('BackupService: Error syncing imported lastRead: $e');
+        }
+      }
 
       return BackupResult(
         success: true,

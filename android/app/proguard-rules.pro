@@ -12,6 +12,8 @@
 
 # Keep SharedPreferences plugin
 -keep class io.flutter.plugins.sharedpreferences.** { *; }
+-keep interface io.flutter.plugins.sharedpreferences.** { *; }
+-keepclassmembers class io.flutter.plugins.sharedpreferences.** { *; }
 -dontwarn io.flutter.plugins.sharedpreferences.**
 
 # Flutter Local Notifications

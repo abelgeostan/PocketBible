@@ -149,6 +149,7 @@ class BibleNavigationProvider extends ChangeNotifier {
       _selectedTestament = book.testament;
       _currentChapter = 1;
       _targetVerse = null;
+      _saveCurrentPosition();
       notifyListeners();
     } catch (_) {}
   }
@@ -258,5 +259,25 @@ class BibleNavigationProvider extends ChangeNotifier {
 
   void _saveCurrentPosition() {
     recordCurrentReading();
+  }
+
+  Future<void> reloadLastReadPosition() async {
+    try {
+      final pos = await _userDataRepository.getLastRead();
+      if (pos != null && _books.isNotEmpty) {
+        _lastReadPosition = pos;
+        final book = _books.firstWhere(
+          (b) => b.code == pos.bookCode,
+          orElse: () => _books.first,
+        );
+        _currentBook = book;
+        _selectedTestament = book.testament;
+        _currentChapter = pos.chapter.clamp(1, book.totalChapters);
+        _targetVerse = pos.verse;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('BibleNavigationProvider: Error reloading last read position: $e');
+    }
   }
 }

@@ -202,7 +202,7 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'ജനപ്രിയ തിരച്ചിലുകൾ (Popular Searches)',
+              'Popular Searches',
               style: TextStyle(
                 color: mutedColor,
                 fontSize: 12,

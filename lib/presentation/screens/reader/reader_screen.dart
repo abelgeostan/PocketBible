@@ -69,6 +69,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
     _currentPageIndex = _indexOf(nav.currentBook?.code, nav.currentChapter);
     _pageController = PageController(initialPage: _currentPageIndex);
     _preloadAdjacent(_currentPageIndex);
+    nav.recordCurrentReading();
   }
 
   List<ChapterRef> _buildAllChapters(List<BibleBook> books) {

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/services/backup_service.dart';
+import '../../../providers/bible_navigation_provider.dart';
 import '../../../providers/bookmarks_provider.dart';
 import '../../../providers/highlights_provider.dart';
 import '../../../providers/notes_provider.dart';
@@ -231,7 +232,7 @@ class SettingsScreen extends StatelessWidget {
                     'Receive daily morning verse reminder',
                     style: TextStyle(fontSize: 12, color: mutedColor),
                   ),
-                  activeColor: accentColor,
+                  activeThumbColor: accentColor,
                   value: notifProvider.morningEnabled,
                   onChanged: (val) => notifProvider.setMorningEnabled(val),
                 ),
@@ -288,7 +289,7 @@ class SettingsScreen extends StatelessWidget {
                     'Receive daily evening reading reminder',
                     style: TextStyle(fontSize: 12, color: mutedColor),
                   ),
-                  activeColor: accentColor,
+                  activeThumbColor: accentColor,
                   value: notifProvider.eveningEnabled,
                   onChanged: (val) => notifProvider.setEveningEnabled(val),
                 ),
@@ -653,6 +654,7 @@ class SettingsScreen extends StatelessWidget {
     context.read<BookmarksProvider>().loadBookmarks();
     context.read<HighlightsProvider>().loadHighlights();
     context.read<NotesProvider>().loadNotes();
+    context.read<BibleNavigationProvider>().reloadLastReadPosition();
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
